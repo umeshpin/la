@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Diagonalization, one step at a time</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef3f8; --grid:rgba(40,90,160,.11); --card:#fbfdff; --ink:#14233b; --muted:#5b6b82; --line:#c7d3e3;
+  --accent:#1f4fd8; --on-accent:#ffffff; --hi:#ffe066; --pivot:#bfe0ff; --good:#0f8a5f; --bad:#c4382b;
+  --k0:#1f4fd8; --k1:#0f8a5f; --k2:#d4620f;
+  --ui:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --math:"STIX Two Text","Cambria Math","Times New Roman",serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e2547; --grid:rgba(255,255,255,.07); --card:#12305a; --ink:#eaf2ff; --muted:#9db6d8; --line:#2b4c7d;
+    --accent:#8fb8ff; --on-accent:#0b1b33; --hi:#7a6a12; --pivot:#24558f; --good:#5fdcaa; --bad:#ff9a8a;
+    --k0:#8fb8ff; --k1:#5fdcaa; --k2:#ffb067;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e2547; --grid:rgba(255,255,255,.07); --card:#12305a; --ink:#eaf2ff; --muted:#9db6d8; --line:#2b4c7d;
+  --accent:#8fb8ff; --on-accent:#0b1b33; --hi:#7a6a12; --pivot:#24558f; --good:#5fdcaa; --bad:#ff9a8a;
+  --k0:#8fb8ff; --k1:#5fdcaa; --k2:#ffb067;
+}
+html{
+  scroll-padding-top:env(safe-area-inset-top,0px);
+  height:100%; font-size:clamp(15px,1.1vw,21px);
+  background-color:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+}
+body{margin:0;height:100%;background:transparent;color:var(--ink);font-family:var(--ui);}
+*,*::before,*::after{box-sizing:border-box}
+.app{height:100%;display:flex;flex-direction:column}
+
+header{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1.4rem;padding:.7rem 1.2rem;background:var(--card);border-bottom:1.5px solid var(--line)}
+.brand{font-family:var(--math);font-size:1.35rem;font-weight:600;white-space:nowrap}
+.brand span{font-weight:400;color:var(--muted);font-size:1rem;margin-left:.5rem}
+.chips{display:flex;flex-wrap:wrap;gap:.35rem;flex:1}
+.chip{font:inherit;font-size:.82rem;padding:.3rem .7rem;border-radius:99px;border:1.5px solid var(--line);background:transparent;color:var(--muted);cursor:pointer}
+.chip:hover{border-color:var(--accent);color:var(--ink)}
+.chip.done{color:var(--ink);border-color:var(--muted)}
+.chip.cur{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:700}
+.theme{font:inherit;font-size:.85rem;padding:.3rem .7rem;border-radius:8px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+
+main{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:minmax(0,1fr) 17rem;gap:1rem;padding:1rem 1.2rem;align-items:start}
+@media (max-width:860px){main{grid-template-columns:minmax(0,1fr)}}
+.stagecard{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:1.2rem 1.4rem 1.6rem;min-height:26rem}
+.kicker{font-size:.85rem;color:var(--muted);margin:0 0 .3rem}
+h2{font-family:var(--math);font-weight:600;font-size:clamp(1.4rem,2.2vw,2.1rem);margin:0 0 .4rem;line-height:1.2}
+.say{margin:0 0 1rem;max-width:64ch;font-size:1.02rem;line-height:1.5;color:var(--muted);min-height:1.5em}
+.say b{color:var(--ink)}
+.stage{display:flex;flex-direction:column;align-items:center;gap:1.15rem;padding:.4rem 0;overflow-x:auto}
+.side{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:1rem 1.1rem}
+.side h3{font-size:.95rem;margin:0 0 .6rem;font-weight:700}
+.amini{display:flex;align-items:center;gap:.5rem;font-family:var(--math);padding-bottom:.7rem;margin-bottom:.7rem;border-bottom:1.5px dashed var(--line)}
+.fact{font-family:var(--math);font-size:1.12rem;padding:.35rem 0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.fact:last-child{border-bottom:0}
+.fact.pop{animation:pop .6s ease-out}
+@keyframes pop{0%{background:var(--hi)}100%{background:transparent}}
+.small{font-size:.88rem}.muted{color:var(--muted)}
+
+footer{display:flex;align-items:center;gap:.8rem;padding:.8rem 1.2rem;background:var(--card);border-top:1.5px solid var(--line)}
+.btn{font:inherit;font-weight:700;font-size:1.05rem;padding:.65rem 1.3rem;border-radius:10px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);padding:.65rem 2rem;font-size:1.15rem}
+.btn:focus-visible,.chip:focus-visible,.theme:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.prog{flex:1;display:flex;align-items:center;gap:.8rem;min-width:0}
+.track{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar{height:100%;width:0;background:var(--accent);transition:width .4s}
+#count{font-size:.9rem;color:var(--muted);white-space:nowrap}
+@media (max-width:620px){#replay{display:none}.btn{padding:.6rem .9rem}.btn.primary{padding:.6rem 1.3rem}}
+
+/* ---------- reveal ---------- */
+.rv{opacity:0;transform:translateY(8px);transition:opacity .45s ease,transform .45s ease}
+.rv.on{opacity:1;transform:none}
+
+/* ---------- math layout ---------- */
+.flexrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.7rem 1.1rem}
+.op{font-family:var(--math);font-size:1.8rem;color:var(--muted)}
+.eqrow{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.4em .8em;font-family:var(--math);font-size:clamp(1.15rem,2vw,1.55rem);text-align:center}
+.eqrow.big{font-size:clamp(1.4rem,2.6vw,2.1rem)}
+.eqrow.calc{font-size:clamp(1.05rem,1.8vw,1.3rem);color:var(--muted)}
+.eqrow b{font-weight:600}
+.big{font-family:var(--math)}
+.t0{color:var(--k0)}.t1{color:var(--k1)}.t2{color:var(--k2)}
+.boxed{border:2px solid var(--accent);border-radius:.5em;padding:.2em .7em;display:inline-block}
+.opchip{background:var(--accent);color:var(--on-accent);padding:.15em .8em;border-radius:99px;font-family:var(--ui);font-size:.8em;font-weight:500}
+.bad{color:var(--bad)}.good{color:var(--good)}
+.chipk{display:inline-block;padding:.1em .6em;border-radius:.5em;font-family:var(--math)}
+.chipk.k0{background:color-mix(in srgb,var(--k0) 22%,transparent)}
+.chipk.k1{background:color-mix(in srgb,var(--k1) 22%,transparent)}
+.chipk.k2{background:color-mix(in srgb,var(--k2) 22%,transparent)}
+
+.mat{display:inline-grid;grid-template-columns:repeat(var(--c),auto);gap:.35em .9em;padding:.4em .9em;position:relative;font-family:var(--math);font-size:clamp(1.05rem,2.4vw,1.7rem);vertical-align:middle}
+.mat::before,.mat::after{content:"";position:absolute;top:0;bottom:0;width:.4em;border:2px solid var(--ink)}
+.mat::before{left:0;border-right:0}
+.mat::after{right:0;border-left:0}
+.mat.det::before{border:0;border-left:2px solid var(--ink);width:0}
+.mat.det::after{border:0;border-right:2px solid var(--ink);width:0}
+.mat.md{font-size:clamp(1rem,2vw,1.35rem)}
+.mat.sm{font-size:.95rem;gap:.15em .55em;padding:.25em .6em}
+.cell{min-width:1.8em;text-align:center;padding:.1em .2em;line-height:1.5;border-radius:.35em;transition:background .35s,opacity .35s,color .35s}
+.cell.hi{background:var(--hi)}
+.cell.piv{background:var(--pivot)}
+.cell.dim{opacity:.2}
+.cell.ph{opacity:0}
+.cell.res{color:var(--good);font-weight:600;animation:flash .8s ease-out}
+@keyframes flash{0%{transform:scale(1.4);background:var(--hi)}100%{transform:scale(1)}}
+.cell.k0{background:color-mix(in srgb,var(--k0) 22%,transparent)}
+.cell.k1{background:color-mix(in srgb,var(--k1) 22%,transparent)}
+.cell.k2{background:color-mix(in srgb,var(--k2) 22%,transparent)}
+.cell.sp{margin-left:.7em;position:relative}
+.cell.sp::before{content:"";position:absolute;left:-.8em;top:-.2em;bottom:-.2em;border-left:2px dashed var(--muted)}
+
+.matbox{display:inline-flex;gap:.3em;align-items:stretch;font-size:clamp(1.05rem,2.4vw,1.7rem)}
+.matbox .mat{font-size:inherit}
+.rlabs{display:grid;gap:.35em;padding:.4em 0;font-family:var(--ui);color:var(--muted)}
+.rlab{height:calc(1.5em + .2em);padding:0 .2em;display:flex;align-items:center}
+.rlab small{font-size:.55em}
+
+.plan{display:grid;gap:.7rem;width:min(44rem,100%)}
+.planitem{display:flex;gap:1rem;align-items:center;padding:.6rem .9rem;border:1.5px solid var(--line);border-radius:12px;font-size:1.05rem}
+.planitem .num{font-family:var(--math);font-size:1.5rem;width:2rem;text-align:center;color:var(--accent);font-weight:600}
+
+.trial{display:grid;gap:.5rem;font-family:var(--math);font-size:clamp(1.05rem,1.9vw,1.45rem)}
+.trow{display:grid;grid-template-columns:4.5em 1fr 4em 7em;gap:.6em;align-items:center;padding:.3em .6em;border-radius:.5em}
+.trow.ok{background:color-mix(in srgb,var(--good) 18%,transparent)}
+
+.synth{display:grid;grid-template-columns:repeat(5,3.6em);grid-template-rows:repeat(3,auto);row-gap:.15em;font-family:var(--math);font-size:clamp(1.2rem,2.2vw,1.8rem);text-align:center}
+.sc{padding:.15em 0}
+.sc.root{border-right:2px solid var(--ink);color:var(--accent);font-weight:600}
+.hline{grid-column:2 / 6;grid-row:3;border-top:2px solid var(--ink);height:0;align-self:start}
+.sc.res{color:var(--good);font-weight:600}
+
+.vbox{display:flex;flex-direction:column;align-items:center;gap:.2rem}
+.vbox .cap{font-family:var(--math);font-size:1.05rem}
+.vbox.k0 .cap{color:var(--k0)}.vbox.k1 .cap{color:var(--k1)}.vbox.k2 .cap{color:var(--k2)}
+
+.choice{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem;width:min(46rem,100%)}
+.pick{font:inherit;text-align:left;padding:1rem 1.2rem;border-radius:12px;border:2px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.pick:hover,.pick:focus-visible{border-color:var(--accent);outline:none}
+.pick b{display:block;font-family:var(--math);font-size:1.25rem;font-weight:600;margin-bottom:.3rem}
+.pick span{color:var(--muted);font-size:.95rem;line-height:1.4}
+.mswitch{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;font-size:.9rem;color:var(--muted);align-self:flex-start}
+.mswitch button{font:inherit;font-size:.85rem;padding:.25rem .7rem;border-radius:99px;border:1.5px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.mswitch button:hover{border-color:var(--accent)}
+@media (prefers-reduced-motion: reduce){
+  .rv,.cell,.bar{transition:none}
+  .cell.res,.fact.pop{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">Diagonalization<span>P⁻¹AP = D</span></div>
+    <nav class="chips" id="chips" aria-label="Sections"></nav>
+    <button class="theme" id="theme" type="button" aria-label="Switch light or dark theme">Light / dark</button>
+  </header>
+  <main id="main">
+    <section class="stagecard" aria-live="off">
+      <p class="kicker" id="kicker"></p>
+      <h2 id="title"></h2>
+      <p class="say" id="say"></p>
+      <div class="stage" id="stage"></div>
+    </section>
+    <aside class="side">
+      <h3>Matrix and results so far</h3>
+      <div class="amini" id="amini"></div>
+      <div id="facts"></div>
+    </aside>
+  </main>
+  <footer>
+    <button class="btn" id="back" type="button">← Back</button>
+    <div class="prog"><div class="track"><div class="bar" id="bar"></div></div><span id="count"></span></div>
+    <button class="btn" id="replay" type="button">↻ Replay</button>
+    <button class="btn primary" id="next" type="button">Next →</button>
+  </footer>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const MINUS='−';
+const f=n=>n<0?MINUS+Math.abs(n):String(n);
+const fp=n=>n<0?'('+f(n)+')':f(n);
+const sub=['₁','₂','₃'];
+const el=(tag,cls,html)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;};
+const M=s=>s.trim().split('/').map(r=>r.trim().split(/\s+/));
+const mul=(X,Y)=>X.map((r,i)=>Y[0].map((_,j)=>r.reduce((s,_v,k)=>s+X[i][k]*Y[k][j],0)));
+const $=id=>document.getElementById(id);
+
+const A=[[1,2,0],[0,3,0],[2,-4,2]];
+const P=[[-1,0,-1],[-1,0,0],[2,1,2]];
+const Pinv=[[0,-1,0],[2,0,1],[-1,1,0]];
+const D=[[3,0,0],[0,2,0],[0,0,1]];
+const AP=mul(A,P);
+
+/* ---------- timers ---------- */
+let timers=[];
+const after=(ms,fn)=>{timers.push(setTimeout(fn,ms));};
+const clearTimers=()=>{timers.forEach(clearTimeout);timers=[];};
+const seq=(fns,gap=800,start=300)=>fns.forEach((fn,i)=>after(start+i*gap,fn));
+const on=x=>(Array.isArray(x)?x:[x]).forEach(e=>e.classList.add('on'));
+
+/* ---------- builders ---------- */
+function mat(Mx,o={}){
+  const m=el('div','mat'+(o.cls?' '+o.cls:''));
+  m.style.setProperty('--c',Mx[0].length);
+  Mx.forEach((row,r)=>row.forEach((v,c)=>{
+    const d=el('span','cell');
+    if(o.split!=null&&c===o.split)d.classList.add('sp');
+    const extra=o.cellCls?o.cellCls(r,c):'';
+    if(extra)extra.split(' ').filter(Boolean).forEach(x=>d.classList.add(x));
+    d.textContent=typeof v==='number'?f(v):v;
+    d.dataset.r=r;d.dataset.c=c;
+    m.appendChild(d);
+  }));
+  return m;
+}
+function matBox(Mx,o={}){
+  const m=mat(Mx,o);
+  if(!o.labels)return {wrap:m,m};
+  const wrap=el('div','matbox');
+  const lab=el('div','rlabs');
+  Mx.forEach((_,i)=>lab.appendChild(el('span','rlab','<small>R'+(i+1)+'</small>')));
+  wrap.append(lab,m);
+  return {wrap,m};
+}
+const cellAt=(m,r,c)=>m.querySelector('.cell[data-r="'+r+'"][data-c="'+c+'"]');
+const rowCells=(m,r)=>[...m.querySelectorAll('.cell[data-r="'+r+'"]')];
+const colCells=(m,c)=>[...m.querySelectorAll('.cell[data-c="'+c+'"]')];
+const vecHTML=arr=>mat(arr.map(x=>[x]),{cls:'md'}).outerHTML;
+function eqrow(parts,cls=''){
+  const r=el('div','eqrow'+(cls?' '+cls:''));
+  const spans=parts.map(p=>{const s=el('span','rv',p);r.appendChild(s);return s;});
+  return {el:r,spans};
+}
+
+/* ---------- frames ---------- */
+const sections=[
+  {id:'prob',name:'Problem'},
+  {id:'char',name:'1 Characteristic equation'},
+  {id:'eig',name:'2 Eigenvalues'},
+  {id:'vec',name:'3 Eigenvectors'},
+  {id:'pd',name:'4 P and D'},
+  {id:'inv',name:'5 Inverse of P'},
+  {id:'ver',name:'6 Check'}
+];
+const frames=[];
+const add=o=>frames.push(o);
+const idxOf=id=>frames.findIndex(x=>x.id===id);
+let invMethod='rr';
+const isVis=fr=>!fr.m||fr.m===invMethod;
+const vis=()=>frames.map((x,i)=>i).filter(i=>isVis(frames[i]));
+
+/* --- problem --- */
+add({id:'start',sec:'prob',title:'The problem',
+  say:'Diagonalize A: find an invertible matrix <b>P</b> and a diagonal matrix <b>D</b> so that P⁻¹AP = D.',
+  build(st){
+    const r=eqrow(['A =',mat(A).outerHTML],'big');
+    const t=eqrow(['Find <b>P</b> and <b>D</b> such that &nbsp;<b>P⁻¹ A P = D</b>']);
+    st.append(r.el,t.el);
+    seq([()=>on(r.spans),()=>on(t.spans)],800,200);
+  }});
+
+add({id:'plan',sec:'prob',title:'The plan',
+  say:'Six steps. Each press of Next does one small piece.',
+  build(st){
+    const items=[
+      ['1','Characteristic equation','λ³ − (trace)λ² + (sum of minors)λ − (determinant) = 0'],
+      ['2','Eigenvalues','try a value for the first root, divide, factor the quadratic'],
+      ['3','Eigenvectors','solve (A − λI)v = 0 by row reduction, once per eigenvalue'],
+      ['4','Build P and D','eigenvectors become the columns of P, eigenvalues the diagonal of D'],
+      ['5','Inverse of P','row-reduce [P | I], or use 1/det(P) · Adj(P). Your choice'],
+      ['6','Check','multiply out P⁻¹AP and see D']
+    ];
+    const ol=el('div','plan');
+    items.forEach(([n,h,d])=>ol.appendChild(el('div','planitem rv','<span class="num">'+n+'</span><div><b>'+h+'</b><br><span class="muted">'+d+'</span></div>')));
+    st.appendChild(ol);
+    seq([...ol.children].map(li=>()=>on(li)),450,200);
+  }});
+
+/* --- characteristic equation --- */
+add({id:'form',sec:'char',title:'Characteristic equation of a 3×3 matrix',
+  say:'Eigenvalues are the roots of det(A − λI) = 0. For a 3×3 matrix that expands into a ready-made formula.',
+  build(st){
+    const a=eqrow(['det(A − λI) = 0 &nbsp;expands to']);
+    const b=eqrow(['λ³ − (<span class="t0">tr A</span>)λ² + (<span class="t1">M₁₁ + M₂₂ + M₃₃</span>)λ − <span class="t2">|A|</span> = 0'],'big');
+    const l1=eqrow(['<span class="t0"><b>tr A</b></span> = sum of the diagonal entries']);
+    const l2=eqrow(['<span class="t1"><b>M₁₁, M₂₂, M₃₃</b></span> = delete row i and column i, take the 2×2 determinant']);
+    const l3=eqrow(['<span class="t2"><b>|A|</b></span> = determinant of A']);
+    st.append(a.el,b.el,l1.el,l2.el,l3.el);
+    seq([()=>on(a.spans),()=>on(b.spans),()=>on(l1.spans),()=>on(l2.spans),()=>on(l3.spans)],800,200);
+  }});
+
+add({id:'trace',sec:'char',title:'Trace of A',
+  say:'Add the entries on the main diagonal.',
+  build(st){
+    const m=mat(A);const fx=el('div','flexrow');fx.append(m);
+    const r=eqrow(['<span class="t0">tr A</span> =','1','+ 3','+ 2','= <b class="t0">6</b>'],'big');
+    st.append(fx,r.el);on(r.spans[0]);
+    seq([
+      ()=>{cellAt(m,0,0).classList.add('hi');on(r.spans[1]);},
+      ()=>{cellAt(m,1,1).classList.add('hi');on(r.spans[2]);},
+      ()=>{cellAt(m,2,2).classList.add('hi');on(r.spans[3]);},
+      ()=>on(r.spans[4])
+    ],900,400);
+  }});
+
+[0,1,2].forEach(i=>{
+  const keep=[0,1,2].filter(k=>k!==i);
+  const S=keep.map(r=>keep.map(c=>A[r][c]));
+  const val=S[0][0]*S[1][1]-S[0][1]*S[1][0];
+  add({id:'m'+i,sec:'char',title:'Principal minor M'+sub[i]+sub[i],
+    say:'Cross out row '+(i+1)+' and column '+(i+1)+'. The 2×2 block that is left gives the minor.',
+    build(st){
+      const m=mat(A),sm=mat(S,{cls:'det rv'});
+      const fx=el('div','flexrow');fx.append(m,el('span','op','→'),sm);
+      const calc=eqrow(['<span class="t1">M'+sub[i]+sub[i]+'</span> = ('+f(S[0][0])+')('+f(S[1][1])+') − ('+f(S[0][1])+')('+f(S[1][0])+')','= <b class="t1">'+f(val)+'</b>'],'big');
+      st.append(fx,calc.el);
+      seq([
+        ()=>{for(let r=0;r<3;r++)for(let c=0;c<3;c++){const x=cellAt(m,r,c);x.classList.add((r===i||c===i)?'dim':'hi');}on(sm);},
+        ()=>on(calc.spans[0]),
+        ()=>on(calc.spans[1])
+      ],1000,400);
+    }});
+});
+
+add({id:'minsum',sec:'char',title:'Sum of the principal minors',
+  say:'Add the three minors you just found.',
+  build(st){
+    const r=eqrow(['<span class="t1">M₁₁ + M₂₂ + M₃₃</span> =','6 + 2 + 3','= <b class="t1">11</b>'],'big');
+    st.append(r.el);
+    seq([()=>on(r.spans[0]),()=>on(r.spans[1]),()=>on(r.spans[2])],900,300);
+  }});
+
+add({id:'det',sec:'char',title:'Determinant |A|',
+  say:'Row 2 is [0, 3, 0]: two zeros, so expand along that row.',
+  build(st){
+    const m=mat(A),sm=mat([[1,0],[2,2]],{cls:'det rv'});
+    const fx=el('div','flexrow');fx.append(m,el('span','op','→'),sm);
+    const l1=eqrow(['|A| = 0·C₂₁ + 3·C₂₂ + 0·C₂₃ = 3·C₂₂']);
+    const l2=eqrow(['C₂₂ = (−1)²⁺² · (1·2 − 0·2) = +2']);
+    const l3=eqrow(['|A| = 3 × 2 = <b class="t2">6</b>'],'big');
+    st.append(fx,l1.el,l2.el,l3.el);
+    seq([
+      ()=>{rowCells(m,1).forEach(x=>x.classList.add('hi'));on(l1.spans);},
+      ()=>{[[0,0],[0,2],[2,0],[2,2]].forEach(([r,c])=>cellAt(m,r,c).classList.add('piv'));on(sm);on(l2.spans);},
+      ()=>on(l3.spans)
+    ],1100,400);
+  }});
+
+add({id:'chareq',sec:'char',title:'Write the characteristic equation',
+  say:'Put the three numbers into the formula.',
+  build(st){
+    const r1=eqrow(['λ³ − (<span class="t0">tr A</span>)λ² + (<span class="t1">M₁₁+M₂₂+M₃₃</span>)λ − <span class="t2">|A|</span> = 0']);
+    const r2=eqrow(['λ³ − (<span class="t0">6</span>)λ² + (<span class="t1">11</span>)λ − (<span class="t2">6</span>) = 0']);
+    const r3=eqrow(['<span class="boxed">λ³ − 6λ² + 11λ − 6 = 0</span>'],'big');
+    st.append(r1.el,r2.el,r3.el);
+    seq([()=>on(r1.spans),()=>on(r2.spans),()=>on(r3.spans)],1000,300);
+  }});
+
+/* --- eigenvalues --- */
+add({id:'trial',sec:'eig',title:'First root by trial',
+  say:'Substitute small whole numbers into p(λ) until the result is 0.',
+  build(st){
+    const head=eqrow(['p(λ) = λ³ − 6λ² + 11λ − 6'],'big');
+    const tb=el('div','trial');
+    const rows=[
+      ['p(0)','= 0 − 0 + 0 − 6','= −6','<span class="bad">≠ 0</span>',false],
+      ['p(−1)','= −1 − 6 − 11 − 6','= −24','<span class="bad">≠ 0</span>',false],
+      ['p(1)','= 1 − 6 + 11 − 6','= 0','<span class="good">root ✓</span>',true]
+    ].map(r=>{const d=el('div','trow rv'+(r[4]?' ok':''),r.slice(0,4).map(c=>'<span>'+c+'</span>').join(''));tb.appendChild(d);return d;});
+    const end=eqrow(['So <b>λ = 1</b> is a root, and <b>(λ − 1)</b> is a factor of p(λ).']);
+    st.append(head.el,tb,end.el);on(head.spans);
+    seq([...rows.map(r=>()=>on(r)),()=>on(end.spans)],1100,500);
+  }});
+
+add({id:'synth',sec:'eig',title:'Divide p(λ) by (λ − 1)',
+  say:'Synthetic division with the root 1: bring down, multiply by 1, add.',
+  build(st){
+    const head=eqrow(['p(λ) = 1·λ³ − 6·λ² + 11·λ − 6 &nbsp;→ coefficients 1, −6, 11, −6; root 1']);
+    const top=['1','1','−6','11','−6'],mid=['','','1','−5','6'],bot=['','1','−5','6','0'];
+    const grid=el('div','synth');
+    const cells=[[],[],[]];
+    [top,mid,bot].forEach((row,r)=>row.forEach((t,c)=>{
+      const s=el('span','sc rv'+(c===0?' root':''),t);
+      s.style.gridRow=String(r+1);s.style.gridColumn=String(c+1);
+      if(r===0||c===0)s.classList.add('on');
+      grid.appendChild(s);cells[r][c]=s;
+    }));
+    grid.appendChild(el('div','hline'));
+    const cap=eqrow(['&nbsp;'],'calc');cap.spans[0].classList.add('on');
+    const q=eqrow(['Quotient: <b>λ² − 5λ + 6</b>, remainder 0']);
+    const q2=eqrow(['p(λ) = (λ − 1)(λ² − 5λ + 6)'],'big');
+    st.append(head.el,grid,cap.el,q.el,q2.el);on(head.spans);
+    const steps=[
+      [2,1,'Bring down the first coefficient: 1'],
+      [1,2,'Multiply 1 × 1 = 1 and write it under −6'],
+      [2,2,'Add: −6 + 1 = −5'],
+      [1,3,'Multiply −5 × 1 = −5 and write it under 11'],
+      [2,3,'Add: 11 + (−5) = 6'],
+      [1,4,'Multiply 6 × 1 = 6 and write it under −6'],
+      [2,4,'Add: −6 + 6 = 0. Remainder 0, so (λ − 1) really is a factor ✓']
+    ];
+    seq(steps.map(([r,c,t])=>()=>{on(cells[r][c]);if(r===2)cells[r][c].classList.add('res');cap.spans[0].innerHTML=t;}),1100,500);
+    after(500+steps.length*1100,()=>on(q.spans));
+    after(500+steps.length*1100+900,()=>on(q2.spans));
+  }});
+
+add({id:'factor',sec:'eig',title:'Factor the quadratic',
+  say:'Find two numbers with product +6 and sum −5.',
+  build(st){
+    const r=[
+      eqrow(['λ² − 5λ + 6 = 0'],'big'),
+      eqrow(['Product +6 and sum −5: &nbsp;<b>−2</b> and <b>−3</b> &nbsp;((−2)(−3) = 6, &nbsp;−2 + (−3) = −5)']),
+      eqrow(['λ² − 5λ + 6 = (λ − 2)(λ − 3)'],'big'),
+      eqrow(['⟹ &nbsp;λ = 2 &nbsp;or&nbsp; λ = 3'],'big')
+    ];
+    r.forEach(x=>st.appendChild(x.el));
+    seq(r.map(x=>()=>on(x.spans)),1000,300);
+  }});
+
+add({id:'eigs',sec:'eig',title:'The eigenvalues',
+  say:'Three different eigenvalues for a 3×3 matrix means A is diagonalizable.',
+  build(st){
+    const r=[
+      eqrow(['p(λ) = (λ − 1)(λ − 2)(λ − 3) = 0'],'big'),
+      eqrow(['Eigenvalues: 1, 2, 3 &nbsp;(three distinct values ⟹ <b>diagonalizable</b>)']),
+      eqrow(['Check: sum 3 + 2 + 1 = 6 = tr A ✓ &nbsp;&nbsp; product 3·2·1 = 6 = |A| ✓']),
+      eqrow(['We take them in the order','<span class="chipk k0">λ₁ = 3</span>','<span class="chipk k1">λ₂ = 2</span>','<span class="chipk k2">λ₃ = 1</span>'],'big')
+    ];
+    r.forEach(x=>st.appendChild(x.el));
+    seq(r.map(x=>()=>on(x.spans)),1100,300);
+  }});
+
+/* --- eigenvectors --- */
+function rowOpBuilder(before,o,split){
+  const after=M(o.after);
+  return function(st){
+    const {wrap,m}=matBox(before,{labels:true,split});
+    const fx=el('div','flexrow');fx.append(wrap);
+    const opl=eqrow(['<span class="opchip">'+o.op+'</span>'],'big');
+    const cl=eqrow([o.calc||'&nbsp;'],'calc');
+    st.append(fx,opl.el,cl.el);
+    seq([
+      ()=>{
+        o.changed.forEach(r=>rowCells(m,r).forEach(x=>x.classList.add('hi')));
+        (o.pivot||[]).forEach(r=>rowCells(m,r).forEach(x=>x.classList.add('piv')));
+        on(opl.spans);
+      },
+      ()=>{if(o.calc)on(cl.spans);},
+      ()=>{
+        o.changed.forEach(r=>rowCells(m,r).forEach(x=>{x.textContent=after[r][+x.dataset.c];x.classList.remove('hi');x.classList.add('res');}));
+        (o.pivot||[]).forEach(r=>rowCells(m,r).forEach(x=>x.classList.remove('piv')));
+      }
+    ],1100,400);
+  };
+}
+function opFrames(prefix,sec,label,start,ops,split){
+  let cur=start;
+  ops.forEach((o,i)=>{
+    const before=cur;
+    add({id:prefix+'_op'+(i+1),sec,title:label+': row operation '+(i+1)+' of '+ops.length,say:o.say,build:rowOpBuilder(before,o,split)});
+    cur=M(o.after);
+  });
+}
+
+const EV=[
+  {key:'e3',lam:3,n:0,
+   ops:[
+    {op:'R₁ → R₁ ÷ (−2)',say:'Make the first pivot equal to 1.',calc:'[−2, 2, 0] ÷ (−2) = [1, −1, 0]',after:'1 −1 0 / 0 0 0 / 2 −4 −1',changed:[0]},
+    {op:'R₃ → R₃ − 2·R₁',say:'Clear the entry below the first pivot.',calc:'[2, −4, −1] − 2·[1, −1, 0] = [0, −2, −1]',after:'1 −1 0 / 0 0 0 / 0 −2 −1',changed:[2],pivot:[0]},
+    {op:'R₂ ↔ R₃',say:'Move the zero row to the bottom.',calc:'',after:'1 −1 0 / 0 −2 −1 / 0 0 0',changed:[1,2]},
+    {op:'R₂ → R₂ ÷ (−2)',say:'Make the second pivot equal to 1.',calc:'[0, −2, −1] ÷ (−2) = [0, 1, ½]',after:'1 −1 0 / 0 1 ½ / 0 0 0',changed:[1]},
+    {op:'R₁ → R₁ + R₂',say:'Clear the entry above the second pivot.',calc:'[1, −1, 0] + [0, 1, ½] = [1, 0, ½]',after:'1 0 ½ / 0 1 ½ / 0 0 0',changed:[0],pivot:[1]}
+   ],
+   rref:'1 0 ½ / 0 1 ½ / 0 0 0',
+   lines:['Read the rows: &nbsp;x + ½z = 0, &nbsp; y + ½z = 0, &nbsp; 0 = 0',
+     'Column 3 has no pivot, so z is free. Let z = t.',
+     'x = −½t, &nbsp; y = −½t, &nbsp; z = t &nbsp;⟹ &nbsp;v = t·(−½, −½, 1)ᵀ',
+     'Choose t = 2 to clear the fractions: &nbsp;<span class="t0">v₁</span> = '+vecHTML([-1,-1,2]),
+     'Check: A·v₁ = (−3, −3, 6)ᵀ = 3·v₁ ✓'],
+   vec:[-1,-1,2]},
+  {key:'e2',lam:2,n:1,
+   ops:[
+    {op:'R₃ → R₃ + 2·R₁',say:'Clear the entry below the first pivot.',calc:'[2, −4, 0] + 2·[−1, 2, 0] = [0, 0, 0]',after:'−1 2 0 / 0 1 0 / 0 0 0',changed:[2],pivot:[0]},
+    {op:'R₁ → (−1)·R₁',say:'Make the first pivot equal to 1.',calc:'[−1, 2, 0] × (−1) = [1, −2, 0]',after:'1 −2 0 / 0 1 0 / 0 0 0',changed:[0]},
+    {op:'R₁ → R₁ + 2·R₂',say:'Clear the entry above the second pivot.',calc:'[1, −2, 0] + 2·[0, 1, 0] = [1, 0, 0]',after:'1 0 0 / 0 1 0 / 0 0 0',changed:[0],pivot:[1]}
+   ],
+   rref:'1 0 0 / 0 1 0 / 0 0 0',
+   lines:['Read the rows: &nbsp;x = 0, &nbsp; y = 0, &nbsp; 0 = 0',
+     'Column 3 has no pivot, so z is free. Let z = t.',
+     'x = 0, &nbsp; y = 0, &nbsp; z = t &nbsp;⟹ &nbsp;v = t·(0, 0, 1)ᵀ',
+     'Choose t = 1: &nbsp;<span class="t1">v₂</span> = '+vecHTML([0,0,1]),
+     'Check: A·v₂ = (0, 0, 2)ᵀ = 2·v₂ ✓'],
+   vec:[0,0,1]},
+  {key:'e1',lam:1,n:2,
+   ops:[
+    {op:'R₁ ↔ R₃',say:'Row 1 needs a nonzero entry in column 1, so swap it with row 3.',calc:'',after:'2 −4 1 / 0 2 0 / 0 2 0',changed:[0,2]},
+    {op:'R₃ → R₃ − R₂',say:'Rows 2 and 3 are equal, so this makes a zero row.',calc:'[0, 2, 0] − [0, 2, 0] = [0, 0, 0]',after:'2 −4 1 / 0 2 0 / 0 0 0',changed:[2],pivot:[1]},
+    {op:'R₁ → R₁ ÷ 2',say:'Make the first pivot equal to 1.',calc:'[2, −4, 1] ÷ 2 = [1, −2, ½]',after:'1 −2 ½ / 0 2 0 / 0 0 0',changed:[0]},
+    {op:'R₂ → R₂ ÷ 2',say:'Make the second pivot equal to 1.',calc:'[0, 2, 0] ÷ 2 = [0, 1, 0]',after:'1 −2 ½ / 0 1 0 / 0 0 0',changed:[1]},
+    {op:'R₁ → R₁ + 2·R₂',say:'Clear the entry above the second pivot.',calc:'[1, −2, ½] + 2·[0, 1, 0] = [1, 0, ½]',after:'1 0 ½ / 0 1 0 / 0 0 0',changed:[0],pivot:[1]}
+   ],
+   rref:'1 0 ½ / 0 1 0 / 0 0 0',
+   lines:['Read the rows: &nbsp;x + ½z = 0, &nbsp; y = 0, &nbsp; 0 = 0',
+     'Column 3 has no pivot, so z is free. Let z = t.',
+     'x = −½t, &nbsp; y = 0, &nbsp; z = t &nbsp;⟹ &nbsp;v = t·(−½, 0, 1)ᵀ',
+     'Choose t = 2 to clear the fraction: &nbsp;<span class="t2">v₃</span> = '+vecHTML([-1,0,2]),
+     'Check: A·v₃ = (−1, 0, 2)ᵀ = 1·v₃ ✓'],
+   vec:[-1,0,2]}
+];
+
+EV.forEach(ev=>{
+  const label='λ'+sub[ev.n]+' = '+ev.lam;
+  const Rn=A.map((row,r)=>row.map((v,c)=>r===c?v-ev.lam:v));
+  add({id:ev.key+'_shift',sec:'vec',title:label+': form A − '+(ev.lam===1?'':ev.lam)+'I',
+    say:'Solve (A − λI)v = 0. First subtract λ from each diagonal entry.',
+    build(st){
+      const a=mat(A);
+      const li=mat(A.map((row,r)=>row.map((_,c)=>r===c?ev.lam:0)));
+      const res=mat(Rn,{cellCls:()=>'ph'});
+      const fx=el('div','flexrow');
+      fx.append(a,el('span','op','−'),li,el('span','op','='),res);
+      const cap=eqrow(['&nbsp;'],'calc');cap.spans[0].classList.add('on');
+      const fin=eqrow(['(A − '+(ev.lam===1?'':ev.lam)+'I)v = 0, &nbsp;v = (x, y, z)ᵀ &nbsp;→ row-reduce this matrix'],'big');
+      st.append(fx,cap.el,fin.el);
+      const diagStep=i=>()=>{
+        cellAt(a,i,i).classList.add('hi');cellAt(li,i,i).classList.add('hi');
+        const x=cellAt(res,i,i);x.textContent=f(Rn[i][i]);x.classList.remove('ph');x.classList.add('res');
+        cap.spans[0].innerHTML=f(A[i][i])+' − '+ev.lam+' = <b>'+f(Rn[i][i])+'</b>';
+      };
+      seq([
+        ()=>{for(let r=0;r<3;r++)for(let c=0;c<3;c++)if(r!==c){const x=cellAt(res,r,c);x.classList.remove('ph');}cap.spans[0].innerHTML='Off-diagonal entries stay the same';},
+        diagStep(0),diagStep(1),diagStep(2),
+        ()=>on(fin.spans)
+      ],1000,500);
+    }});
+  opFrames(ev.key,'vec',label,Rn.map(r=>r.map(f)),ev.ops);
+  add({id:ev.key+'_sol',sec:'vec',title:label+': read off the eigenvector',
+    say:'The matrix is fully reduced. Read off the solutions of (A − λI)v = 0.',
+    build(st){
+      const fx=el('div','flexrow');fx.append(el('span','op','reduced form'),mat(M(ev.rref),{cls:'md'}));
+      st.appendChild(fx);
+      const rs=ev.lines.map(l=>{const r=eqrow([l]);st.appendChild(r.el);return r.spans[0];});
+      seq(rs.map(s=>()=>on(s)),1100,400);
+    }});
+});
+
+/* --- P and D --- */
+add({id:'P',sec:'pd',title:'Build P: eigenvectors as columns',
+  say:'Put v₁, v₂, v₃ side by side, in the same order as λ₁, λ₂, λ₃.',
+  build(st){
+    const k=['k0','k1','k2'],vs=[[-1,-1,2],[0,0,1],[-1,0,2]],lam=[3,2,1];
+    const vrow=el('div','flexrow');
+    const boxes=vs.map((v,i)=>{
+      const b=el('div','vbox rv '+k[i],'<div class="cap">v'+sub[i]+' (λ = '+lam[i]+')</div>');
+      b.appendChild(mat(v.map(x=>[x]),{cls:'md'}));vrow.appendChild(b);return b;
+    });
+    const pm=mat(P,{cellCls:(r,c)=>'ph '+k[c]});
+    const prow=el('div','flexrow');prow.append(el('span','op','P ='),pm);
+    const note=eqrow(['Changing the order of the columns only changes the order of the eigenvalues in D.'],'calc');
+    st.append(vrow,prow,note.el);
+    const fns=[];
+    for(let i=0;i<3;i++){
+      fns.push(()=>on(boxes[i]));
+      fns.push(()=>colCells(pm,i).forEach(x=>x.classList.remove('ph')));
+    }
+    fns.push(()=>on(note.spans));
+    seq(fns,800,300);
+  }});
+
+add({id:'D',sec:'pd',title:'Build D: eigenvalues on the diagonal',
+  say:'Each eigenvalue goes in the same position as its eigenvector in P.',
+  build(st){
+    const k=['k0','k1','k2'];
+    const pm=mat(P,{cellCls:(r,c)=>k[c]});
+    const dm=mat(D,{cellCls:(r,c)=>r===c?'ph '+k[r]:''});
+    const fx=el('div','flexrow');
+    fx.append(el('span','op','P ='),pm,el('span','op','D ='),dm);
+    const r=eqrow(['D = diag(λ₁, λ₂, λ₃) = diag(3, 2, 1)'],'big');
+    st.append(fx,r.el);
+    seq([0,1,2].map(i=>()=>{cellAt(dm,i,i).classList.remove('ph');cellAt(dm,i,i).classList.add('res');}).concat([()=>on(r.spans)]),900,400);
+  }});
+
+/* --- inverse of P --- */
+add({id:'invchoice',sec:'inv',title:'Two ways to find P⁻¹',
+  say:'Pick the method your class knows best. You can switch from any step in this section.',
+  build(st){
+    const box=el('div','choice');
+    [['rr','Row reduction','Write [P | I] and reduce it to [I | P⁻¹].'],
+     ['adj','Adjoint method','P⁻¹ = (1/det P) · Adj P, using cofactors.']].forEach(([m,h,d])=>{
+      const b=el('button','pick rv','<b>'+h+'</b><span>'+d+'</span>');b.type='button';
+      b.addEventListener('click',()=>{invMethod=m;next();});
+      box.appendChild(b);
+    });
+    st.appendChild(box);
+    seq([...box.children].map(b=>()=>on(b)),400,200);
+  }});
+const INV0=M('−1 0 −1 1 0 0 / −1 0 0 0 1 0 / 2 1 2 0 0 1');
+add({id:'inv0',sec:'inv',title:'Set up [P | I]',
+  say:'Write P next to the identity matrix. Row-reduce until the left block becomes I; the right block is then P⁻¹.',
+  build(st){
+    const {wrap,m}=matBox(INV0,{labels:true,split:3});
+    const fx=el('div','flexrow');fx.append(wrap);
+    const r=eqrow(['[ P | I ] &nbsp;→ &nbsp;[ I | P⁻¹ ]'],'big');
+    st.append(fx,r.el);
+    seq([
+      ()=>{for(let i=0;i<3;i++)rowCells(m,i).forEach(x=>x.classList.add(+x.dataset.c<3?'piv':'hi'));},
+      ()=>on(r.spans)
+    ],900,400);
+  }});
+opFrames('inv','inv','Finding P⁻¹',INV0,[
+  {op:'R₂ → R₂ − R₁',say:'Clear the entry below the first pivot (the left block is working towards I).',calc:'[−1, 0, 0 | 0, 1, 0] − [−1, 0, −1 | 1, 0, 0] = [0, 0, 1 | −1, 1, 0]',after:'−1 0 −1 1 0 0 / 0 0 1 −1 1 0 / 2 1 2 0 0 1',changed:[1],pivot:[0]},
+  {op:'R₃ → R₃ + 2·R₁',say:'Clear the entry in row 3, column 1.',calc:'[2, 1, 2 | 0, 0, 1] + 2·[−1, 0, −1 | 1, 0, 0] = [0, 1, 0 | 2, 0, 1]',after:'−1 0 −1 1 0 0 / 0 0 1 −1 1 0 / 0 1 0 2 0 1',changed:[2],pivot:[0]},
+  {op:'R₁ → R₁ + R₂',say:'Use the 1 in row 2, column 3 to clear the −1 above it.',calc:'[−1, 0, −1 | 1, 0, 0] + [0, 0, 1 | −1, 1, 0] = [−1, 0, 0 | 0, 1, 0]',after:'−1 0 0 0 1 0 / 0 0 1 −1 1 0 / 0 1 0 2 0 1',changed:[0],pivot:[1]},
+  {op:'R₁ → (−1)·R₁',say:'Make the first pivot equal to 1.',calc:'[−1, 0, 0 | 0, 1, 0] × (−1) = [1, 0, 0 | 0, −1, 0]',after:'1 0 0 0 −1 0 / 0 0 1 −1 1 0 / 0 1 0 2 0 1',changed:[0]},
+  {op:'R₂ ↔ R₃',say:'Swap rows 2 and 3 so the left block becomes I.',calc:'',after:'1 0 0 0 −1 0 / 0 1 0 2 0 1 / 0 0 1 −1 1 0',changed:[1,2]}
+],3);
+
+add({id:'inv_res',sec:'inv',title:'Read off P⁻¹',
+  say:'The left block is now I. The right block is P⁻¹.',
+  build(st){
+    const {wrap,m}=matBox(M('1 0 0 0 −1 0 / 0 1 0 2 0 1 / 0 0 1 −1 1 0'),{labels:true,split:3});
+    const fx=el('div','flexrow');fx.append(wrap);
+    const out=el('div','flexrow rv');out.append(el('span','op','P⁻¹ ='),mat(Pinv));
+    st.append(fx,out);
+    seq([
+      ()=>{for(let i=0;i<3;i++)rowCells(m,i).forEach(x=>{if(+x.dataset.c>=3)x.classList.add('hi');});},
+      ()=>on(out)
+    ],1000,400);
+  }});
+
+/* --- inverse of P, adjoint method --- */
+const sgn=(i,j)=>((i+j)%2===0?1:-1);
+const minorOf=(i,j)=>{
+  const k=[0,1,2],r=k.filter(x=>x!==i),c=k.filter(x=>x!==j);
+  const S=r.map(a=>c.map(b=>P[a][b]));
+  return {S,val:S[0][0]*S[1][1]-S[0][1]*S[1][0]};
+};
+const COF=[0,1,2].map(i=>[0,1,2].map(j=>sgn(i,j)*minorOf(i,j).val));
+const NB='\u00a0';
+
+add({id:'adj_det',sec:'inv',m:'adj',title:'Adjoint method: determinant of P',
+  say:'Row 2 of P is [−1, 0, 0], so expand along row 2.',
+  build(st){
+    const m=mat(P),sm=mat(minorOf(1,0).S,{cls:'det rv'});
+    const fx=el('div','flexrow');fx.append(m,el('span','op','→'),sm);
+    const l1=eqrow(['det P = (−1)·C₂₁ + 0·C₂₂ + 0·C₂₃ = (−1)·C₂₁']);
+    const l2=eqrow(['C₂₁ = (−1)²⁺¹ · (0·2 − (−1)·1) = −1']);
+    const l3=eqrow(['det P = (−1)(−1) = <b class="t2">1</b> ≠ 0, so P⁻¹ exists'],'big');
+    st.append(fx,l1.el,l2.el,l3.el);
+    seq([
+      ()=>{rowCells(m,1).forEach(x=>x.classList.add('hi'));on(l1.spans);},
+      ()=>{[[0,1],[0,2],[2,1],[2,2]].forEach(([r,c])=>cellAt(m,r,c).classList.add('piv'));on(sm);on(l2.spans);},
+      ()=>on(l3.spans)
+    ],1100,400);
+  }});
+
+add({id:'adj_formula',sec:'inv',m:'adj',title:'The formula',
+  say:'Adj P is the transpose of the cofactor matrix.',
+  build(st){
+    const r1=eqrow(['P⁻¹ = <span class="boxed">1 / det P · Adj P</span>'],'big');
+    const r2=eqrow(['Adj P = (cofactor matrix)ᵀ, &nbsp;Cᵢⱼ = (−1)ⁱ⁺ʲ · Mᵢⱼ']);
+    const r3=eqrow(['Mᵢⱼ = determinant left after deleting row i and column j']);
+    const sg=el('div','flexrow rv');
+    sg.append(el('span','op','signs'),mat([['+','−','+'],['−','+','−'],['+','−','+']],{cls:'md'}));
+    st.append(r1.el,r2.el,r3.el,sg);
+    seq([()=>on(r1.spans),()=>on(r2.spans),()=>on(r3.spans),()=>on(sg)],900,300);
+  }});
+
+[0,1,2].forEach(i=>{
+  add({id:'adj_c'+i,sec:'inv',m:'adj',title:'Cofactors of row '+(i+1),
+    say:'For each entry: cross out its row and column, take the 2×2 determinant, then apply the sign.',
+    build(st){
+      const m=mat(P),sm=mat([[NB,NB],[NB,NB]],{cls:'det'});
+      const cm=mat(COF.map((row,r)=>row.map(v=>r<i?v:NB)),{cls:'md'});
+      const fx1=el('div','flexrow');fx1.append(m,el('span','op','→'),sm);
+      const fx2=el('div','flexrow');fx2.append(el('span','op','cofactor matrix C ='),cm);
+      const cap=eqrow([NB],'big');cap.spans[0].classList.add('on');
+      st.append(fx1,cap.el,fx2);
+      [0,1,2].forEach(j=>{
+        const {S,val}=minorOf(i,j),s=sgn(i,j),cf=s*val;
+        after(500+j*1800,()=>{
+          for(let r=0;r<3;r++)for(let c=0;c<3;c++)cellAt(m,r,c).className='cell'+((r===i||c===j)?' dim':' hi');
+          S.forEach((row,r)=>row.forEach((v,c)=>{cellAt(sm,r,c).textContent=f(v);}));
+          cap.spans[0].innerHTML='M'+sub[i]+sub[j]+' = ('+f(S[0][0])+')('+f(S[1][1])+') − ('+f(S[0][1])+')('+f(S[1][0])+') = '+f(val);
+        });
+        after(500+j*1800+900,()=>{
+          cap.spans[0].innerHTML='C'+sub[i]+sub[j]+' = ('+(s>0?'+1':'−1')+') · ('+f(val)+') = <b>'+f(cf)+'</b>';
+          const x=cellAt(cm,i,j);x.textContent=f(cf);x.classList.add('res');
+        });
+      });
+      after(500+3*1800,()=>{
+        for(let r=0;r<3;r++)for(let c=0;c<3;c++)cellAt(m,r,c).className='cell';
+        cap.spans[0].innerHTML='Row '+(i+1)+' of the cofactor matrix is done ✓';
+      });
+    }});
+});
+
+add({id:'adj_T',sec:'inv',m:'adj',title:'Transpose the cofactor matrix',
+  say:'Adj P = Cᵀ: rows become columns.',
+  build(st){
+    const cm=mat(COF,{cls:'md'}),am=mat(COF.map(r=>r.map(()=>NB)),{cls:'md'});
+    const fx=el('div','flexrow');
+    fx.append(el('span','op','C ='),cm,el('span','op','→'),el('span','op','Adj P = Cᵀ ='),am);
+    const cap=eqrow([NB],'calc');cap.spans[0].classList.add('on');
+    st.append(fx,cap.el);
+    const order=[[0,0],[1,1],[2,2],[0,1],[0,2],[1,2]];
+    const fns=order.map(([i,j])=>()=>{
+      st.querySelectorAll('.hi').forEach(x=>x.classList.remove('hi'));
+      [[i,j],[j,i]].forEach(([r,c])=>{
+        cellAt(cm,r,c).classList.add('hi');
+        const x=cellAt(am,r,c);x.textContent=f(COF[c][r]);x.classList.add('res');
+      });
+      cap.spans[0].innerHTML=i===j?'Diagonal entry ('+(i+1)+', '+(i+1)+') stays in place':'Swap entries ('+(i+1)+', '+(j+1)+') and ('+(j+1)+', '+(i+1)+')';
+    });
+    fns.push(()=>{st.querySelectorAll('.hi').forEach(x=>x.classList.remove('hi'));cap.spans[0].innerHTML='Adj P is complete ✓';});
+    seq(fns,1000,500);
+  }});
+
+add({id:'adj_res',sec:'inv',m:'adj',title:'P⁻¹ = (1/det P) · Adj P',
+  say:'Divide every entry of Adj P by det P = 1.',
+  build(st){
+    const adj=COF[0].map((_,i)=>COF.map(r=>r[i]));
+    const fx=el('div','flexrow');
+    const res=el('div','flexrow rv');
+    fx.append(el('span','op','P⁻¹ = (1/1) ·'),mat(adj));
+    res.append(el('span','op','P⁻¹ ='),mat(Pinv));
+    const note=eqrow(['det P = 1, so dividing changes nothing here. Same P⁻¹ as the row-reduction method ✓'],'calc');
+    st.append(fx,res,note.el);
+    seq([()=>on(res),()=>on(note.spans)],1000,500);
+  }});
+
+['inv0','inv_res'].concat([1,2,3,4,5].map(n=>'inv_op'+n)).forEach(id=>{frames[idxOf(id)].m='rr';});
+
+/* --- check --- */
+function mulFrame(o){
+  const Res=mul(o.L,o.R);
+  add({id:o.id,sec:'ver',title:o.title,say:o.say,
+    build(st){
+      const lm=mat(o.L),rm=mat(o.R),om=mat(Res,{cellCls:()=>'ph'});
+      const fx=el('div','flexrow');fx.append(lm,el('span','op','×'),rm,el('span','op','='),om);
+      const cap=eqrow(['&nbsp;'],'calc');cap.spans[0].classList.add('on');
+      const tl=eqrow([o.tail],'big');
+      st.append(fx,cap.el,tl.el);
+      const n=o.L.length,k=o.R[0].length;let t=0;
+      for(let i=0;i<n;i++)for(let j=0;j<k;j++){
+        const s=t++;
+        after(500+s*950,()=>{
+          st.querySelectorAll('.hi,.piv').forEach(x=>x.classList.remove('hi','piv'));
+          rowCells(lm,i).forEach(x=>x.classList.add('hi'));
+          colCells(rm,j).forEach(x=>x.classList.add('piv'));
+          const terms=o.L[i].map((a,q)=>fp(a)+'·'+fp(o.R[q][j])).join(' + ');
+          cap.spans[0].innerHTML='row '+(i+1)+' · column '+(j+1)+': &nbsp;'+terms+' = <b>'+f(Res[i][j])+'</b>';
+          const c=cellAt(om,i,j);c.textContent=f(Res[i][j]);c.classList.remove('ph');c.classList.add('res');
+        });
+      }
+      after(500+t*950,()=>{
+        st.querySelectorAll('.hi,.piv').forEach(x=>x.classList.remove('hi','piv'));
+        cap.spans[0].innerHTML='Done ✓';on(tl.spans);
+      });
+    }});
+}
+mulFrame({id:'ver1',title:'Check 1 of 2: compute A·P',say:'Each entry is (row of A) · (column of P). Watch the highlighted row and column.',
+  L:A,R:P,tail:'Columns of AP: 3·v₁, 2·v₂, 1·v₃, because A·vₖ = λₖ·vₖ'});
+mulFrame({id:'ver2',title:'Check 2 of 2: compute P⁻¹·(AP)',say:'Now multiply the result by P⁻¹ on the left.',
+  L:Pinv,R:AP,tail:'The eigenvalues 3, 2, 1 appear on the diagonal ✓'});
+
+add({id:'done',sec:'ver',title:'P⁻¹AP = D',
+  say:'A is diagonalized.',
+  build(st){
+    const fx=el('div','flexrow rv');
+    fx.append(mat(Pinv,{cls:'md'}),mat(A,{cls:'md'}),mat(P,{cls:'md'}),el('span','op','='),mat(D,{cls:'md'}));
+    const r=[
+      eqrow(['A = P D P⁻¹'],'big'),
+      eqrow(['λ from the characteristic equation &nbsp;·&nbsp; v from (A − λI)v = 0 &nbsp;·&nbsp; P = [v₁ v₂ v₃], D = diag(λ₁, λ₂, λ₃)'],'calc')
+    ];
+    st.append(fx,r[0].el,r[1].el);
+    seq([()=>on(fx),()=>on(r[0].spans),()=>on(r[1].spans)],900,300);
+  }});
+
+/* ---------- sidebar facts ---------- */
+const factDefs=[
+  ['trace','<span class="t0">tr A = 6</span>'],
+  ['m0','M₁₁ = 6'],['m1','M₂₂ = 2'],['m2','M₃₃ = 3'],
+  ['det','<span class="t2">|A| = 6</span>'],
+  ['chareq','λ³ − 6λ² + 11λ − 6 = 0'],
+  ['trial','root: λ = 1'],
+  ['eigs','λ₁ = 3, λ₂ = 2, λ₃ = 1'],
+  ['e3_sol','<span class="t0">v₁ = (−1, −1, 2)ᵀ</span>'],
+  ['e2_sol','<span class="t1">v₂ = (0, 0, 1)ᵀ</span>'],
+  ['e1_sol','<span class="t2">v₃ = (−1, 0, 2)ᵀ</span>'],
+  ['P',()=>'P = '+mat(P,{cls:'sm'}).outerHTML],
+  ['D',()=>'D = '+mat(D,{cls:'sm'}).outerHTML],
+  ['inv_res',()=>'P⁻¹ = '+mat(Pinv,{cls:'sm'}).outerHTML],
+  ['adj_res',()=>'P⁻¹ = '+mat(Pinv,{cls:'sm'}).outerHTML]
+];
+
+/* ---------- app ---------- */
+let idx=0;
+function renderFacts(){
+  const box=$('facts');box.innerHTML='';
+  factDefs.forEach(([id,h])=>{
+    const at=idxOf(id);
+    if(idx>at&&isVis(frames[at]))box.appendChild(el('div','fact'+(idx===at+1?' pop':''),typeof h==='function'?h():h));
+  });
+  if(!box.children.length)box.innerHTML='<div class="muted small">Results collect here as each step finishes.</div>';
+}
+function renderChips(){
+  const cur=frames[idx].sec;
+  const curI=sections.findIndex(s=>s.id===cur);
+  [...$('chips').children].forEach((b,i)=>{
+    b.classList.toggle('cur',i===curI);
+    b.classList.toggle('done',i<curI);
+    if(i===curI)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');
+  });
+}
+function switcher(m){
+  const other=m==='rr'?'adj':'rr';
+  const d=el('div','mswitch');
+  d.append('Method: '+(m==='rr'?'row reduction [P | I]':'adjoint, 1/det P · Adj P'));
+  const b=el('button','','Switch to '+(other==='rr'?'row reduction':'the adjoint method'));
+  b.type='button';
+  b.addEventListener('click',()=>{invMethod=other;go(frames.findIndex(x=>x.m===other));});
+  d.appendChild(b);
+  return d;
+}
+function render(){
+  clearTimers();
+  const fr=frames[idx];
+  const sec=sections.find(s=>s.id===fr.sec);
+  const v=vis(),pos=v.indexOf(idx);
+  $('kicker').textContent=sec.name+' · step '+(pos+1)+' of '+v.length;
+  $('title').textContent=fr.title;
+  $('say').innerHTML=fr.say||'';
+  const st=$('stage');st.innerHTML='';
+  fr.build(st);
+  if(fr.m)st.insertBefore(switcher(fr.m),st.firstChild);
+  $('bar').style.width=(pos/(v.length-1)*100)+'%';
+  $('count').textContent=(pos+1)+' / '+v.length;
+  $('back').disabled=pos===0;
+  $('next').textContent=pos===v.length-1?'Restart ↺':'Next →';
+  renderChips();renderFacts();
+  $('main').scrollTop=0;
+}
+const go=i=>{idx=Math.max(0,Math.min(frames.length-1,i));render();};
+const next=()=>{const v=vis(),k=v.indexOf(idx);go(k===v.length-1?v[0]:v[k+1]);};
+const back=()=>{const v=vis(),k=v.indexOf(idx);if(k>0)go(v[k-1]);};
+
+sections.forEach(s=>{
+  const b=el('button','chip',s.name);b.type='button';
+  b.addEventListener('click',()=>go(frames.findIndex(x=>x.sec===s.id&&isVis(x))));
+  $('chips').appendChild(b);
+});
+$('next').addEventListener('click',next);
+$('back').addEventListener('click',back);
+$('replay').addEventListener('click',render);
+document.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const onBtn=e.target&&e.target.closest&&e.target.closest('button');
+  if((e.key===' '||e.key==='Enter')&&onBtn)return;
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='Enter'||e.key==='PageDown'){e.preventDefault();next();}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();back();}
+  else if(e.key==='r'||e.key==='R'){render();}
+});
+let theme=null;
+$('theme').addEventListener('click',()=>{
+  const dark=theme?theme==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;
+  theme=dark?'light':'dark';
+  document.documentElement.setAttribute('data-theme',theme);
+});
+$('amini').append('A =',mat(A,{cls:'sm'}));
+render();
+})();
+</script>
+</body>
+</html>
