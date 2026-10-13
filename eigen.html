@@ -1,0 +1,255 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Matrices in Motion — Dr Umesh P</title>
+<style>
+:root{--bg:#fff;--fg:#0f172a;--mu:#64748b;--gr:#e5e9f0;--ax:#334155;--bl:#1d4ed8;--rd:#dc2626;--pn:#f1f5f9;--y:#fde68a;--g:#bbf7d0;--ln:#cbd5e1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[data-theme=dark]{--bg:#0b1020;--fg:#f1f5f9;--mu:#94a3b8;--gr:#1c2540;--ax:#cbd5e1;--bl:#60a5fa;--rd:#f87171;--pn:#141c36;--y:#854d0e;--g:#166534;--ln:#334155}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:clamp(16px,1.3vw,22px)/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;padding:10px 18px;border-bottom:3px solid var(--fg)}
+.br b{font:700 clamp(22px,2.2vw,34px) Georgia,serif;letter-spacing:-.5px}.br small{display:block;color:var(--mu);font-size:.7em}
+.pr{flex:1;text-align:center;font:italic 700 clamp(17px,1.8vw,28px) Georgia,serif}
+button{font:inherit;font-weight:600;min-height:44px;padding:6px 16px;border:2px solid var(--fg);background:var(--bg);color:var(--fg);border-radius:10px;cursor:pointer}
+button:hover{background:var(--pn)}button:disabled{opacity:.35;cursor:default}
+.pri{background:var(--fg);color:var(--bg)}.pri:hover{background:var(--fg);opacity:.85}
+#chips{display:flex;gap:8px;padding:8px 18px;overflow-x:auto;white-space:nowrap}
+#chips button{min-height:40px;border-radius:99px;font-size:.85em;border-color:var(--ln)}#chips .on{background:var(--bl);color:#fff;border-color:var(--bl)}
+main{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;padding:6px 18px}
+#stage{align-self:start;position:sticky;top:0}svg{width:100%;max-height:calc(100vh - 230px);aspect-ratio:1;background:var(--bg);border:2px solid var(--ln);border-radius:14px;touch-action:none}
+aside{min-width:0}h2{font:700 clamp(24px,2.4vw,40px) Georgia,serif;margin:6px 0}
+#cap{font-size:1.15em;margin:8px 0}b.b{color:var(--bl)}b.r{color:var(--rd)}
+.eq{display:flex;align-items:center;gap:12px;font:clamp(26px,3vw,46px) Georgia,serif;flex-wrap:wrap}.eq i{font-style:normal}
+.ex{font:clamp(20px,2.2vw,34px) Georgia,serif;min-height:1.5em;margin:6px 0}.ex b{padding:2px 8px;border-radius:6px}
+table.m{border-collapse:collapse;border-left:3px solid var(--fg);border-right:3px solid var(--fg);border-radius:6px}
+table.m td{padding:3px 12px;text-align:center;min-width:1.7em;border-radius:6px}
+tr.row td{background:var(--pn);outline:2px solid var(--y)}td.t0,b.t0{background:var(--y)!important}td.t1,b.t1{background:var(--g)!important}td.col{background:var(--y)}
+.ln{font:clamp(18px,1.9vw,30px) Georgia,serif;padding:3px 8px;border-left:5px solid transparent}.ln.new{border-color:var(--rd);background:var(--pn)}
+.gal{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}.gal button{min-height:40px;font-size:.8em;padding:4px 10px}.gal .on{background:var(--bl);color:#fff;border-color:var(--bl)}
+.eig{display:grid;grid-template-columns:repeat(5,auto);justify-content:start;gap:2px 14px;font:clamp(34px,4.5vw,70px) Georgia,serif;text-align:center}.eig small{font:700 clamp(13px,1.3vw,20px) system-ui;color:var(--rd);border-top:3px solid var(--rd);padding-top:2px}
+#res{margin-top:12px;border:2px solid var(--ln);border-radius:12px;padding:8px 12px;background:var(--pn)}#res h3{margin:0 0 4px;font-size:.85em;text-transform:uppercase;letter-spacing:1px;color:var(--mu)}
+#res div{display:flex;gap:10px;padding:2px 0;font-family:Georgia,serif;font-size:1.05em}#res span{color:var(--mu);min-width:7.5em;font-family:system-ui;font-size:.8em;padding-top:.2em}
+#pgin{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}#pgin label{display:flex;align-items:center;gap:6px;font:700 1.1em Georgia,serif}
+#pgin input[type=text]{width:5.2em;font:inherit;padding:6px;border:2px solid var(--fg);border-radius:8px;background:var(--bg);color:var(--fg)}#pgin input[type=range]{width:100%;min-width:60px}
+#pgp{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}#msg{color:var(--rd);font-weight:600;min-height:1.2em}
+footer{border-top:3px solid var(--fg);padding:8px 18px}#bar{height:10px;background:var(--gr);border-radius:9px;overflow:hidden}#fill{display:block;height:100%;background:linear-gradient(90deg,var(--bl),var(--rd));width:0;transition:width .3s}
+.ctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}#cnt{font-weight:700;margin:0 8px}#spd{margin-left:auto;display:flex;border:2px solid var(--fg);border-radius:10px;overflow:hidden}#spd button{border:0;border-radius:0;min-width:74px}#spd .on{background:var(--rd);color:#fff}
+svg text{font:600 19px Georgia,serif;fill:var(--fg)}svg .tk{font:15px system-ui;fill:var(--mu)}svg .lb{font:italic 700 24px Georgia,serif;paint-order:stroke;stroke:var(--bg);stroke-width:6px;stroke-linejoin:round}svg .big{font:700 26px system-ui}
+.g{stroke:var(--gr);stroke-width:1.5}.ax{stroke:var(--ax);stroke-width:2.5}.axh{fill:var(--ax)}.cir{fill:none;stroke:var(--mu);stroke-width:2;stroke-dasharray:4 6}.tr{fill:none;stroke:var(--rd);stroke-opacity:.3;stroke-width:3}.el{stroke:var(--mu);stroke-width:3;stroke-dasharray:12 8}
+.sq{fill:var(--bl);fill-opacity:.15;stroke:var(--bl);stroke-width:4;stroke-linejoin:round}.im{fill:var(--rd);fill-opacity:.15;stroke:var(--rd);stroke-width:4;stroke-linejoin:round}
+@media(max-width:900px){main{grid-template-columns:1fr}#stage{position:static}svg{max-height:70vh}.pr{order:3;flex-basis:100%}#spd{margin-left:0}}
+</style></head><body>
+<header><div class="br"><b>Matrices in Motion</b><small>Transformations · Determinant · Eigenvectors</small></div><div class="pr">Dr Umesh P, College of Engineering Thalassery</div><div><button id="own">Enter your own</button> <button id="th">◐ Light / Dark</button></div></header>
+<nav id="chips"></nav>
+<main><section id="stage"><svg id="pl" viewBox="0 0 600 600"></svg></section>
+<aside><h2 id="ttl"></h2><div id="calc"></div><p id="cap"></p>
+<div id="pg" hidden><div id="pgin"></div><div id="pgp"></div><div id="msg"></div><div id="pgout"></div><button class="pri" id="show">Show the working</button></div>
+<div id="res"></div></aside></main>
+<footer><div id="bar"><i id="fill"></i></div><div class="ctl"><button id="bk">◀ Back</button><button id="nx" class="pri">Next ▶</button><button id="rp">↻ Replay</button><span id="cnt"></span>
+<div id="spd" role="group" aria-label="Animation speed (S)"><button data-i="0">Slow</button><button data-i="1">Medium</button><button data-i="2">Fast</button></div></div></footer>
+<script>
+"use strict";
+const $=s=>document.querySelector(s),B=BigInt;
+/* ---------- exact fractions ---------- */
+const gcd=(a,b)=>{a<0n&&(a=-a);b<0n&&(b=-b);while(b)[a,b]=[b,a%b];return a};
+const F=(n,d=1n)=>{n=B(n);d=B(d);if(d<0n){n=-n;d=-d}const g=gcd(n,d)||1n;return{n:n/g,d:d/g}};
+const add=(x,y)=>F(x.n*y.d+y.n*x.d,x.d*y.d),sub=(x,y)=>F(x.n*y.d-y.n*x.d,x.d*y.d),mul=(x,y)=>F(x.n*y.n,x.d*y.d),dv=(x,y)=>F(x.n*y.d,x.d*y.n),neg=x=>F(-x.n,x.d);
+const fl=x=>Number(x.n)/Number(x.d),zero=x=>x.n===0n,eq=(x,y)=>x.n===y.n&&x.d===y.d;
+const sfs=x=>x.d===1n?String(x.n):x.n+'/'+x.d,fs=x=>sfs(x).replace('-','−'),P=x=>x.n<0n?'('+fs(x)+')':fs(x);
+function parse(s){s=String(s).trim().replace(/[−–]/g,'-');if(!s||s.length>12)return null;let m=s.match(/^([+-]?\d+)\s*\/\s*([+-]?\d+)$/);
+ if(m)return B(m[2])===0n?null:F(m[1],m[2]);
+ if(/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s)){const t=s.replace(/^[+-]/,''),[i,f='']=t.split('.'),n=B((i||'0')+f);return F(s[0]==='-'?-n:n,10n**B(f.length))}return null}
+const sqrtInt=n=>{if(n<0n)return null;let r=B(Math.floor(Math.sqrt(Number(n))));while(r*r>n)r--;while((r+1n)*(r+1n)<=n)r++;return r*r===n?r:null};
+const sqrtF=x=>{const a=sqrtInt(x.n),b=sqrtInt(x.d);return a!==null&&b!==null?F(a,b):null};
+function rad(x){if(x.d===1n){let n=x.n,k=1n;for(let i=2n;i*i<=n&&i<3000n;i++)while(n%(i*i)===0n){n/=i*i;k*=i}return(k>1n?k:'')+'√'+n}return'√('+fs(x)+')'}
+const mv=(M,w)=>[add(mul(M[0],w[0]),mul(M[1],w[1])),add(mul(M[2],w[0]),mul(M[3],w[1]))];
+const detF=M=>sub(mul(M[0],M[3]),mul(M[1],M[2])),f2=p=>p.map(fl);
+function prim(x,y){const L=x.d*y.d/gcd(x.d,y.d);let X=x.n*(L/x.d),Y=y.n*(L/y.d);const g=gcd(X,Y)||1n;X/=g;Y/=g;if(X<0n||(X===0n&&Y<0n)){X=-X;Y=-Y}return[F(X),F(Y)]}
+function evec(M,l){const[a,b,c,d]=M;if(!zero(b))return prim(b,sub(l,a));if(!zero(c))return prim(sub(l,d),c);return eq(l,a)?[F(1),F(0)]:[F(0),F(1)]}
+function eigen(M){const[a,b,c,d]=M,t=add(a,d),dt=detF(M),disc=sub(mul(t,t),mul(F(4),dt)),two=F(2),E={t,dt,disc};
+ if(zero(disc)){E.k='rep';const l=dv(t,two);E.l=[l];E.all=zero(b)&&zero(c);E.vs=E.all?[]:[evec(M,l)];E.ls=[fs(l)];E.lf=[fl(l)];E.vf=E.vs.map(f2)}
+ else if(disc.n<0n){E.k='cx';const re=dv(t,two),nd=neg(disc),q=sqrtF(nd),im=q?fs(dv(q,two)):rad(nd)+'/2';E.ls=[fs(re)+' + '+im+' i',fs(re)+' − '+im+' i'];E.lf=[];E.vs=[];E.vf=[]}
+ else{E.k='re';const s=sqrtF(disc);
+  if(s){const l1=dv(sub(t,s),two),l2=dv(add(t,s),two);E.l=[l1,l2];E.ls=[fs(l1),fs(l2)];E.lf=E.l.map(fl);E.vs=E.l.map(l=>evec(M,l));E.vf=E.vs.map(f2)}
+  else{const sd=Math.sqrt(fl(disc)),tf=fl(t),r=rad(disc);E.ex=1;E.ls=['('+fs(t)+' − '+r+')/2','('+fs(t)+' + '+r+')/2'];E.lf=[(tf-sd)/2,(tf+sd)/2];E.vs=[];
+   E.vf=E.lf.map(l=>{let x,y;if(!zero(b)){x=fl(b);y=l-fl(a)}else{x=l-fl(d);y=fl(c)}const h=Math.hypot(x,y)||1;return[x/h,y/h]})}}
+ return E}
+/* ---------- state ---------- */
+let A=[F(3),F(-2),F(-1),F(4)],v=[F(1),F(1)],SP=1,spi=1,cur=0,tok=0,pg=false,D,gi=0,V={R:3,sc:100};
+const SQ=[[0,0],[1,0],[1,1],[0,1]].map(p=>p.map(n=>F(n))),ROT=[0,-1,1,0].map(n=>F(n)),BL='var(--bl)',RD='var(--rd)';
+function rc(){D={Av:mv(A,v),cs:SQ.map(c=>mv(A,c)),det:detF(A),E:eigen(A)}}
+const lamTxt=i=>D.E.ls[i]+(D.E.ex?' ≈ '+D.E.lf[i].toFixed(3):'');
+const vs=p=>'('+fs(p[0])+', '+fs(p[1])+')',vsf=w=>'≈ ('+w.map(z=>z.toFixed(3)).join(', ')+')';
+const mt=M=>`<table class="m"><tr><td>${fs(M[0])}</td><td>${fs(M[1])}</td></tr><tr><td>${fs(M[2])}</td><td>${fs(M[3])}</td></tr></table>`;
+const vt=w=>`<table class="m"><tr><td>${fs(w[0])}</td></tr><tr><td>${fs(w[1])}</td></tr></table>`;
+const mtxt=M=>'['+fs(M[0])+' '+fs(M[1])+'; '+fs(M[2])+' '+fs(M[3])+']',eqs=(M,w,o)=>mtxt(M)+' · ['+fs(w[0])+'; '+fs(w[1])+'] = ['+fs(o[0])+'; '+fs(o[1])+']';
+/* ---------- timing (global speed multiplier SP) ---------- */
+const sleep=(ms,T)=>new Promise(r=>setTimeout(()=>r(T===tok),ms*SP));
+function anim(dur,fn,T){return new Promise(res=>{let p=0,l=performance.now();const f=n=>{if(T!==tok)return res(false);p+=(n-l)/(dur*SP);l=n;if(p>=1){fn(1);return res(true)}fn(p);requestAnimationFrame(f)};fn(0);requestAnimationFrame(f)})}
+const es=p=>p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2,lp=(a,b,p)=>[a[0]+(b[0]-a[0])*p,a[1]+(b[1]-a[1])*p];
+/* ---------- drawing ---------- */
+const X=x=>300+x*V.sc,Y=y=>300-y*V.sc,setR=R=>{V.R=R;V.sc=300/R};
+const rng=pts=>{const m=Math.max(0,...pts.flat(9).map(Math.abs));return Number.isFinite(m)?Math.max(3,Math.ceil(m*1.25)):3};
+function base(){const R=V.R,ts=R<=10?1:Math.ceil(R/8),n=Math.floor(R/ts)*ts;let s='';
+ for(let k=-n;k<=n;k+=ts){s+=`<line class="g" x1="${X(k)}" y1="0" x2="${X(k)}" y2="600"/><line class="g" x1="0" y1="${Y(k)}" x2="600" y2="${Y(k)}"/>`;
+  if(k){s+=`<line class="ax" x1="${X(k)}" y1="294" x2="${X(k)}" y2="306"/><line class="ax" x1="294" y1="${Y(k)}" x2="306" y2="${Y(k)}"/><text class="tk" x="${X(k)}" y="324" text-anchor="middle">${k}</text><text class="tk" x="288" y="${Y(k)+5}" text-anchor="end">${k}</text>`}}
+ return s+`<line class="ax" x1="0" y1="300" x2="590" y2="300"/><line class="ax" x1="300" y1="600" x2="300" y2="10"/><polygon class="axh" points="598,300 582,293 582,307"/><polygon class="axh" points="300,2 293,18 307,18"/><text x="580" y="284">x</text><text x="312" y="24">y</text><text x="288" y="318" text-anchor="end">O</text>`}
+const show=(...a)=>{$('#pl').innerHTML=base()+a.join('')};
+function arr(x,y,col,lab,w=7,x0=0,y0=0,dash){const ax=X(x0),ay=Y(y0),bx=X(x),by=Y(y),dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy);if(L<3)return'';const ux=dx/L,uy=dy/L,h=Math.min(24,L*.6);
+ return `<line x1="${ax}" y1="${ay}" x2="${bx-ux*h*.8}" y2="${by-uy*h*.8}" style="stroke:${col};stroke-width:${w};stroke-linecap:round"${dash?' stroke-dasharray="10 8"':''}/><polygon style="fill:${col}" points="${bx},${by} ${bx-ux*h+uy*h*.45},${by-uy*h-ux*h*.45} ${bx-ux*h-uy*h*.45},${by-uy*h+ux*h*.45}"/>`+(lab?`<text class="lb" style="fill:${col}" x="${bx+ux*20+(ux>=0?4:-4)}" y="${by+uy*20+6}" text-anchor="${ux>=0?'start':'end'}">${lab}</text>`:'')}
+const poly=(pts,cls,op=1)=>`<polygon class="${cls}" style="opacity:${op}" points="${pts.map(p=>X(p[0])+','+Y(p[1])).join(' ')}"/>`;
+const tx=(x,y,s,col,dx=0,dy=0,an='middle')=>`<text class="lb" style="fill:${col||'var(--fg)'}" x="${X(x)+dx}" y="${Y(y)+dy}" text-anchor="${an}">${s}</text>`;
+const dot=(x,y,col)=>`<circle cx="${X(x)}" cy="${Y(y)}" r="8" style="fill:${col}"/>`;
+function arc(r,a0,a1,col){let p=[];for(let i=0;i<=40;i++){const a=a0+(a1-a0)*i/40;p.push(X(r*Math.cos(a))+','+Y(r*Math.sin(a)))}return `<polyline points="${p.join(' ')}" style="fill:none;stroke:${col};stroke-width:4"/>`}
+const elin=(w,R)=>`<line class="el" x1="${X(-w[0]*R*1.5)}" y1="${Y(-w[1]*R*1.5)}" x2="${X(w[0]*R*1.5)}" y2="${Y(w[1]*R*1.5)}"/>`;
+const bigtxt=s=>`<text class="big" x="16" y="40">${s}</text>`;
+const area=p=>{let s=0;for(let i=0;i<p.length;i++){const q=p[(i+1)%p.length];s+=p[i][0]*q[1]-q[0]*p[i][1]}return s/2};
+/* ---------- calculation animation ---------- */
+const C=h=>{$('#calc').innerHTML=h},cap=h=>{$('#cap').innerHTML=h};
+function rmv(M,w,r,s,out){let m='<table class="m">';for(let i=0;i<2;i++){m+='<tr'+(i===r&&s?' class="row"':'')+'>';for(let j=0;j<2;j++)m+=`<td class="${i===r&&s?'t'+j:''}">${fs(M[2*i+j])}</td>`;m+='</tr>'}m+='</table>';
+ const q='<table class="m">'+[0,1].map(j=>`<tr><td class="${s&&r>=0?'t'+j:''}">${fs(w[j])}</td></tr>`).join('')+'</table>',
+ o='<table class="m">'+[0,1].map(i=>`<tr><td class="${i===r&&s?'row':''}">${out[i]?fs(out[i]):'?'}</td></tr>`).join('')+'</table>';let ex='';
+ if(r>=0&&s){const a=mul(M[2*r],w[0]),b=mul(M[2*r+1],w[1]);ex=s===1?`<b class="t0">${P(M[2*r])}·${P(w[0])}</b> + <b class="t1">${P(M[2*r+1])}·${P(w[1])}</b>`:s===2?`<b class="t0">${P(a)}</b> + <b class="t1">${P(b)}</b>`:'= '+fs(add(a,b))}
+ return `<div class="eq">${m}<i>·</i>${q}<i>=</i>${o}</div><div class="ex">${ex}</div>`}
+async function calcMV(M,w,T){const out=[null,null];C(rmv(M,w,-1,0,out));if(!await sleep(400,T))return;
+ for(let r=0;r<2;r++)for(let s=1;s<=3;s++){if(s===3)out[r]=add(mul(M[2*r],w[0]),mul(M[2*r+1],w[1]));C(rmv(M,w,r,s,out));if(!await sleep(s===1?650:480,T))return}
+ C(rmv(M,w,-1,0,out));return out}
+function rdet(M,s){const t=(i,c)=>`<td class="${c}">${fs(M[i])}</td>`,c1=s===1?['t0','','','t0']:s===2?['','t1','t1','']:['','','',''];
+ const[a,b,c,d]=M,p1=mul(a,d),p2=mul(b,c);let ex=`det A = <b class="${s===1?'t0':''}">${P(a)}·${P(d)}</b> − <b class="${s===2?'t1':''}">${P(b)}·${P(c)}</b>`;
+ if(s>=1)ex+=`<br>= ${fs(p1)} − ${P(p2)}`;if(s>=3)ex+=` = <b>${fs(sub(p1,p2))}</b>`;
+ return `<div class="eq"><table class="m"><tr>${t(0,c1[0])}${t(1,c1[1])}</tr><tr>${t(2,c1[2])}${t(3,c1[3])}</tr></table></div><div class="ex">${ex}</div>`}
+async function calcDet(M,T){for(let s=0;s<=3;s++){C(rdet(M,s));if(!await sleep(s?900:500,T))return false}return true}
+function note(){const E=D.E;let s='';if(zero(D.det))s+='det = 0: the square collapses, so the map cannot be undone. ';
+ if(E.k==='cx')s+='Complex eigenvalues '+E.ls.join(' and ')+': every direction is turned, so no line stays on itself, and there is no real eigenvector.';
+ else if(E.k==='rep')s+=E.all?'Repeated eigenvalue '+E.ls[0]+': A scales every direction equally, so every direction is an eigen-direction.':'Repeated eigenvalue '+E.ls[0]+' is a special case: just one eigen-direction '+vs(E.vs[0])+'.';
+ else{const z=E.lf.findIndex(l=>Math.abs(l)<1e-12);if(z>=0)s+='Eigenvalue 0 has eigenvector '+(E.vs[z]?vs(E.vs[z]):vsf(E.vf[z]))+': it is squashed to the origin.'}return s}
+/* ---------- steps ---------- */
+const ST=[],S=(t,f)=>ST.push({t,f}),inv=()=>f2(v);
+const morphPts=(M,p)=>SQ.map(c=>lp(f2(c),f2(mv(M,c)),p));
+S('A vector on the grid',async T=>{const x=inv();setR(rng([x]));C('');cap('The <b class="b">blue</b> arrow is the <b>in</b> vector v = '+vs(v));await anim(1000,p=>show(arr(x[0]*p,x[1]*p,BL,'in')),T)});
+S('A rotation matrix acts on v',async T=>{const x=inv();setR(rng([x,f2(mv(ROT,v))]));show(arr(x[0],x[1],BL,'in'));cap('Rotation by 90°: each row meets the column, term by term.');const o=await calcMV(ROT,v,T);if(o)cap('<b>'+eqs(ROT,v,o)+'</b>')});
+S('v swings 90° anticlockwise',async T=>{const x=inv(),o=mv(ROT,v),of=f2(o);setR(rng([x,of]));C(rmv(ROT,v,-1,0,o));const a0=Math.atan2(x[1],x[0]),r=Math.hypot(x[0],x[1]);cap('<b class="b">in</b> '+vs(v)+' → <b class="r">out</b> '+vs(o));
+ await anim(1700,p=>{const th=a0+es(p)*Math.PI/2,f=th-a0,cs=Math.cos(f),sn=Math.sin(f),q=z=>z.toFixed(2);C(`<div class="eq"><table class="m"><tr><td>${q(cs)}</td><td>${q(-sn)}</td></tr><tr><td>${q(sn)}</td><td>${q(cs)}</td></tr></table><i>·</i>${vt(v)}<i>=</i><table class="m"><tr><td>${q(cs*x[0]-sn*x[1])}</td></tr><tr><td>${q(sn*x[0]+cs*x[1])}</td></tr></table></div><div class="ex">turned by ${(f*180/Math.PI).toFixed(0)}° &nbsp; [cos −sin ; sin cos]</div>`);show(arc(r*.45,a0,th,'var(--mu)'),arr(x[0],x[1],BL,'in'),arr(r*Math.cos(th),r*Math.sin(th),RD,p>.98?'out':''))},T)});
+S('The same with our matrix A',async T=>{const x=inv(),o=D.Av,of=f2(o);setR(rng([x,of]));show(arr(x[0],x[1],BL,'in'));cap('A = '+mtxt(A));const r=await calcMV(A,v,T);if(!r)return;cap('<b>'+eqs(A,v,r)+'</b>');await anim(900,p=>show(arr(x[0],x[1],BL,'in'),arr(of[0]*p,of[1]*p,RD,p>.98?'out':'')),T)});
+function colStep(j,T){const M=A,e=j?[0,1]:[1,0],im=[fl(M[j]),fl(M[2+j])];const keep=j?[fl(M[0]),fl(M[2])]:null;setR(rng([e,im,keep||[0,0],[1,1]]));
+ const m=`<table class="m">${[0,1].map(i=>`<tr>${[0,1].map(k=>`<td class="${k===j?'t0':''}">${fs(M[2*i+k])}</td>`).join('')}</tr>`).join('')}</table>`;
+ C(`<div class="eq">${m}</div><div class="ex">${j?'ŷ':'x̂'}-direction (${e}) lands on column ${j+1}: <b>(${fs(M[j])}, ${fs(M[2+j])})</b></div>`);cap(j?'The columns are where the axes go.':'Column 1 is where the x-direction arrow goes.');
+ return anim(1500,p=>show(keep?arr(keep[0],keep[1],RD,'',5):'',arr(e[0],e[1],BL,j?'ŷ':'x̂'),arr(...lp(e,im,es(p)),RD,p>.98?'('+fs(M[j])+', '+fs(M[2+j])+')':'')),T)}
+
+const GAL=[['Rotation 90°',[0,-1,1,0]],['Rotation −90°',[0,1,-1,0]],['Rotation 180°',[-1,0,0,-1]],['Reflect in X-axis',[1,0,0,-1]],['Reflect in Y-axis',[-1,0,0,1]],['Reflect in y = x',[0,1,1,0]],['Reflect in y = −x',[0,-1,-1,0]],['Scaling',[2,0,0,3]],['Shear',[1,1,0,1]]];
+async function gal(i,T){gi=i;const M=GAL[i][1].map(n=>F(n)),x=inv(),o=f2(mv(M,v)),sq=SQ.map(f2),im=SQ.map(c=>f2(mv(M,c)));setR(rng([...im,o,x]));
+ C(`<div class="gal">${GAL.map((g,k)=>`<button class="${k===i?'on':''}" onclick="galPick(${k})">${g[0]}</button>`).join('')}</div><div class="eq">${mt(M)}<i>·</i>${vt(v)}<i>=</i>${vt(mv(M,v))}</div>`);
+ cap('<b>'+GAL[i][0]+'</b> · det = '+fs(detF(M)));await anim(1100,p=>show(poly(sq,'sq'),poly(morphPts(M,es(p)),'im'),arr(x[0],x[1],BL,'in'),arr(...lp(x,o,es(p)),RD,p>.98?'out':'')),T)}
+window.galPick=k=>{if(pg)return;const T=++tok;gal(k,T)};S('Gallery of transformations',T=>gal(gi,T));
+S('The unit square',async T=>{const sq=SQ.map(f2);setR(rng([sq.concat([[3,3]])]));C('');cap('Four corners: (0,0), (1,0), (1,1), (0,1). Area = 1.');
+ await anim(900,p=>show(poly(sq,'sq',p),...sq.map(c=>tx(c[0],c[1],'('+c+')','var(--bl)',c[0]?14:-14,c[1]?-14:26,c[0]?'start':'end'))),T)});
+S('Transform the corners',async T=>{const sq=SQ.map(f2),im=D.cs.map(f2);setR(rng([sq,im]));const done=[];
+ const draw=k=>show(poly(sq,'sq',.5),...done.map((o,i)=>arr(o[0],o[1],RD,'',3,sq[i][0],sq[i][1],1)+dot(o[0],o[1],RD)+tx(o[0],o[1],vs(D.cs[i]),RD,12,-12,'start')),k<4?dot(sq[k][0],sq[k][1],BL):'');
+ for(let k=0;k<4;k++){draw(k);cap('Corner '+(k+1)+': '+vs(SQ[k]));const o=await calcMV(A,SQ[k],T);if(!o)return;done.push(f2(o));draw(k)}draw(4);cap('Images: '+D.cs.map(vs).join(' → '))});
+S('The square becomes a parallelogram',async T=>{const sq=SQ.map(f2),im=D.cs.map(f2);setR(rng([sq,im]));C('');cap('Every point moves in a straight line: the square is sheared and stretched.');
+ await anim(2400,p=>show(poly(sq,'sq',.4),poly(morphPts(A,es(p)),'im'),p>.98?im.map((o,i)=>tx(o[0],o[1],vs(D.cs[i]),RD,10,-10,'start')).join(''):''),T)});
+S('Determinant: the "times" factor',async T=>{const sq=SQ.map(f2),im=D.cs.map(f2);setR(rng([sq,im]));show(poly(sq,'sq',.4),poly(im,'im'));cap('Cross-multiply the diagonals.');if(await calcDet(A,T))cap('<b>det A = '+fs(D.det)+'</b>')});
+S('Area × det',async T=>{const sq=SQ.map(f2),im=D.cs.map(f2);setR(rng([sq,im]));C(rdet(A,3));cap('The determinant says how many times the area is multiplied.');
+ await anim(2000,p=>{const q=morphPts(A,es(p));show(poly(sq,'sq',.5),poly(q,'im'),bigtxt('area = '+Math.abs(area(q)).toFixed(2).replace(/\.00$/,'')+(p>.98?'   →   area × '+fs(D.det):'')))},T)});
+async function morphStep(T,M,lab,caption,nums){const sq=SQ.map(f2),im=SQ.map(c=>f2(mv(M,c)));setR(rng([sq,im,[2,2]]));show(poly(sq,'sq',.5));cap(caption);if(!await calcDet(M,T))return;
+ await anim(1800,p=>show(poly(sq,'sq',.4),poly(morphPts(M,es(p)),'im'),bigtxt(lab),nums?sq.map((c,i)=>tx(c[0],c[1],i+1,BL,-12,-8)).join('')+im.map((c,i)=>tx(c[0],c[1],i+1,RD,12,-8)).join(''):''),T)}
+S('Singular matrix: det = 0',T=>morphStep(T,[1,2,2,4].map(n=>F(n)),'area × 0','Everything is squashed onto a line, so the transformation cannot be undone.'));
+S('Negative determinant: a flip',T=>morphStep(T,[1,0,0,-1].map(n=>F(n)),'area × 1 but orientation flips (det = −1)','A reflection: same area, but corners 1→2→3→4 now run the other way round.',1));
+/* eigen sweep */
+const dirs=()=>D.E.vf.map((w,i)=>({w,i,th:((Math.atan2(w[1],w[0])%Math.PI)+Math.PI)%Math.PI})).sort((p,q)=>p.th-q.th);
+function sctx(){const af=A.map(fl),tr=[];for(let i=0;i<=120;i++){const t=i/120*2*Math.PI,c=Math.cos(t),s=Math.sin(t);tr.push([af[0]*c+af[1]*s,af[2]*c+af[3]*s])}return{af,tr,R:rng([tr,[[1,1]]])}}
+function sw(c,th,pin,prev){setR(c.R);const{af}=c,u=[Math.cos(th),Math.sin(th)],o=[af[0]*u[0]+af[1]*u[1],af[2]*u[0]+af[3]*u[1]],L=Math.hypot(...o),
+ ang=L<1e-9?null:Math.atan2(u[0]*o[1]-u[1]*o[0],u[0]*o[0]+u[1]*o[1])*180/Math.PI;
+ C(`<div class="eq">${mt(A)}<i>·</i><table class="m"><tr><td>${u[0].toFixed(2)}</td></tr><tr><td>${u[1].toFixed(2)}</td></tr></table><i>=</i><table class="m"><tr><td>${o[0].toFixed(2)}</td></tr><tr><td>${o[1].toFixed(2)}</td></tr></table></div><div class="ex">v at ${((th*180/Math.PI)%360).toFixed(0)}°</div>`);let s=`<circle class="cir" cx="300" cy="300" r="${V.sc}"/><polyline class="tr" points="${c.tr.map(p=>X(p[0])+','+Y(p[1])).join(' ')}"/>`+(prev||[]).map(w=>elin(w,c.R)).join('')+(pin?elin(pin.w,c.R):'');
+ s+=arr(o[0],o[1],RD,'out')+arr(u[0],u[1],BL,'in')+bigtxt('angle between v and Av = '+(ang===null?'—':(Math.abs(ang)<1e-6?0:ang).toFixed(1)+'°'+(Math.abs(ang)<1e-6?' = same direction':'')));
+ if(pin)s+=tx(o[0],o[1],pin.t,RD,0,-34)+tx(u[0],u[1],pin.v,BL,0,44);return s}
+const pinFor=dd=>{const E=D.E,l=E.lf[dd.i];return{w:dd.w,t:(Math.abs(l)<1e-12?'squashed ×0':(l<0?'flipped, stretched ×':'stretched ×')+lamTxt(dd.i)),v:E.vs[dd.i]?vs(E.vs[dd.i]):vsf(dd.w)}};
+async function pauseStep(T,j){const ds=dirs(),E=D.E,c=sctx();
+ if(!ds.length){await anim(5000,p=>show(sw(c,p*2*Math.PI)),T);cap(note());return}
+ if(j>=ds.length){const dd=ds[ds.length-1];show(sw(c,dd.th,pinFor(dd),ds.slice(0,-1).map(d=>d.w)));cap(note());return}
+ const from=j?ds[j-1].th:0,prev=ds.slice(0,j).map(d=>d.w);await anim(3000,p=>show(sw(c,from+(ds[j].th-from)*es(p),null,prev)),T);
+ const pn=pinFor(ds[j]);show(sw(c,ds[j].th,pn,prev));cap('<b>Av lies along v.</b> '+pn.t+' along '+pn.v+'. Press Next to continue.'+(j===ds.length-1?' The opposite directions lie on the same eigenlines.':''))}
+let waiting=null,eigSeen=0;
+const waitGo=T=>new Promise(r=>{$('#nx').textContent='▶ Continue';waiting=()=>{waiting=null;$('#nx').textContent='Next ▶';r(T===tok)}});
+function eigC(dd){const E=D.E,vc=E.vs[dd.i],l=lamTxt(dd.i);C(vc?`<div class="eq">${mt(A)}<i>·</i>${vt(vc)}<i>=</i>${vt(mv(A,vc))}<i>=</i>${E.l?fs(E.l[dd.i]):''}<i>·</i>${vt(vc)}</div><div class="ex">Eigenvalue <b>λ = ${l}</b></div>`:`<div class="eq">${mt(A)}</div><div class="ex">Eigenvalue <b>λ = ${l}</b></div>`)}
+S('Sweep a vector round the circle',async T=>{const c=sctx(),ds=dirs(),TW=2*Math.PI,seg=(a,b)=>Math.max(900,7000*(b-a)/TW),prev=[];let pos=0;eigSeen=0;C('');
+ cap('Blue v turns through every direction. Watch where red Av lies. The sweep stops at each eigen-direction.');
+ for(const dd of ds){if(!await anim(seg(pos,dd.th),p=>show(sw(c,pos+(dd.th-pos)*p,null,prev)),T))return;pos=dd.th;const pn=pinFor(dd);show(sw(c,pos,pn,prev));eigC(dd);eigSeen++;$('#res').innerHTML=resHTML();
+  cap('<b>Av lies along v.</b> '+pn.t+' along '+pn.v+'. Press <b>Continue</b> (button, Space or →) to resume.');if(!await waitGo(T))return;prev.push(dd.w)}
+ if(!await anim(seg(pos,TW),p=>show(sw(c,pos+(TW-pos)*p,null,prev)),T))return;
+ cap(ds.length?'The sweep passed the opposite directions too: they lie on the same eigenlines.'+(note()?' '+note():''):note())});
+
+function eigShow(){const E=D.E,pts=[f2(D.Av),...E.vf];const R=rng(pts.concat([[2,2]]));setR(R);return E.vf.map(w=>elin(w,R)).join('')}
+S('Second method: algebra',async T=>{const E=D.E,[a,b,c,d]=A,t=E.t;show(eigShow());cap('Condition: det(A − λI) = 0. Solving it gives λ = '+E.ls.map((_,i)=>lamTxt(i)).join(' and ')+'.');
+ const L=['det(A − λI) = 0',`(${fs(a)} − λ)(${fs(d)} − λ) − ${P(b)}·${P(c)} = 0`,`(${fs(a)} − λ)(${fs(d)} − λ) − ${P(mul(b,c))} = 0`,`λ² − ${P(t)}λ + ${P(E.dt)} = 0`,'λ = '+E.ls.map((_,i)=>lamTxt(i)).join(E.k==='cx'?'  and  ':'  and  ')+(E.k==='rep'?' (repeated)':'')];
+ if(E.k==='cx')L.push('No real λ, so (A − λI)v = 0 has no real solution v.');
+ else if(E.l)[...E.l.keys()].reverse().forEach(i=>{if(!E.vs[i])return;const l=E.l[i];L.push(`(A − ${fs(l)}I)v = 0 : ${mtxt([sub(a,l),b,c,sub(d,l)])}·v = 0  →  v = ${vs(E.vs[i])}`)});
+ else[1,0].forEach(i=>L.push(`(A − λI)v = 0 with λ = ${lamTxt(i)}  →  v ${vsf(E.vf[i])}`));
+ let h='';for(let i=0;i<L.length;i++){h=L.map((x,k)=>k<=i?`<div class="ln${k===i?' new':''}">${x}</div>`:'').join('');C(h);if(!await sleep(1200,T))return}
+ if(note())cap(note())});
+S('Summary: Av = λv',async T=>{const E=D.E;C(`<div class="eig"><span>A</span><span>v</span><span>=</span><span>λ</span><span>v</span><small>Matrix</small><small>Eigenvector</small><span></span><small>Eigenvalue</small><span></span></div>`);
+ const ds=dirs();let ck='';if(ds.length){const d0=ds[0],i=d0.i;ck=E.vs[i]?`A${vs(E.vs[i])} = ${vs(mv(A,E.vs[i]))} = ${fs(E.l[i])}${vs(E.vs[i])}`:'';}
+ cap('A scalar can replace the matrix for a vector of that direction.<br><b>'+ck+'</b>'+(ck?'':note()));const R=rng([f2(D.Av),[2,2],...E.vf.map(w=>w.map(z=>z*Math.abs(E.lf[0]||1)))]);setR(R);
+ show(E.vf.map(w=>elin(w,R)).join(''),...ds.map(dd=>{const l=E.lf[dd.i],w=E.vs[dd.i]?f2(E.vs[dd.i]):dd.w.map(z=>z*1.5);return arr(w[0],w[1],BL,'',6)+arr(w[0]*l,w[1]*l,RD,'×'+lamTxt(dd.i).replace(/ ≈.*/,''),4)}))});
+S('The inverse A⁻¹',async T=>{const[a,b,c,d]=A,E=D.E;if(zero(D.det)){C('');show(poly(D.cs.map(f2),'im'));cap('det = 0, so A has no inverse: the collapse cannot be undone.');return}
+ const k=dv(F(1),D.det),Ai=[mul(k,d),mul(k,neg(b)),mul(k,neg(c)),mul(k,a)],back=mv(Ai,D.Av);
+ C(`<div class="eq">A⁻¹ = <span>1/${fs(D.det)}</span>${mt([d,neg(b),neg(c),a])} = ${mt(Ai)}</div><div class="ex">det A⁻¹ = 1/det A = ${fs(k)}<br>eigenvalues of A⁻¹ = 1/λ: ${E.k==='cx'?'complex pair':E.l?E.l.map(l=>zero(l)?'—':fs(dv(F(1),l))).join(', '):E.lf.map(l=>(1/l).toFixed(3)).join(', ')}</div>`);
+ cap('A⁻¹ takes <b class="b">Av</b> back to <b class="r">v</b>.');const x=f2(D.Av),o=f2(back);setR(rng([x,o]));await anim(1200,p=>show(arr(x[0],x[1],BL,'Av'),arr(...lp(x,o,es(p)),RD,p>.98?'v':'')),T)});
+/* 3x3 extension: M = [2 1 0; 0 3 1; 0 0 4] */
+const M3=[2,1,0,0,3,1,0,0,4].map(n=>F(n)),v3=[1,1,1].map(n=>F(n)),vs3=w=>'('+w.map(fs).join(', ')+')';
+const mv3=(M,w)=>[0,1,2].map(i=>add(add(mul(M[3*i],w[0]),mul(M[3*i+1],w[1])),mul(M[3*i+2],w[2])));
+const det3=M=>{const m=(i,j)=>M[3*i+j],c=(a,b,d,e)=>sub(mul(a,b),mul(d,e));return add(sub(mul(m(0,0),c(m(1,1),m(2,2),m(1,2),m(2,1))),mul(m(0,1),c(m(1,0),m(2,2),m(1,2),m(2,0)))),mul(m(0,2),c(m(1,0),m(2,1),m(1,1),m(2,0))))};
+const prj=p=>[p[0]+.45*p[2],p[1]+.35*p[2]],CUBE=[...Array(8).keys()].map(i=>[i&1,i>>1&1,i>>2&1]),EDG=[];for(let i=0;i<8;i++)for(let k=0;k<3;k++)if(!(i>>k&1))EDG.push([i,i|1<<k]);
+const wire=(pts,col,w=3,op=1)=>EDG.map(e=>{const a=prj(pts[e[0]]),b=prj(pts[e[1]]);return `<line x1="${X(a[0])}" y1="${Y(a[1])}" x2="${X(b[0])}" y2="${Y(b[1])}" style="stroke:${col};stroke-width:${w};stroke-linecap:round;opacity:${op}"/>`}).join('');
+const tb=rows=>`<table class="m">${rows.map(r=>`<tr${r.h?' class="row"':''}>${r.c.map(z=>`<td>${typeof z==='string'?z:fs(z)}</td>`).join('')}</tr>`).join('')}</table>`;
+const rows3=M=>[0,1,2].map(i=>({c:[M[3*i],M[3*i+1],M[3*i+2]]})),zax=R=>arr(...prj([0,0,R*.8]),'var(--mu)','z',3);
+const l3=(a,b,p)=>a.map((z,i)=>z+(b[i]-z)*p),img3=CUBE.map(c=>mv3(M3,c.map(n=>F(n))).map(fl));
+S('3×3: a cube becomes a slanted box',async T=>{const o=mv3(M3,v3),R=rng([...img3.map(prj),...CUBE.map(prj)]),vf=v3.map(fl),done=['?','?','?'];setR(R);
+ cap('The 3×3 case works the same way: each row meets the vector, now with three terms.');show(zax(R),wire(CUBE,BL),arr(...prj(vf),BL,'in'));
+ for(let r=0;r<3;r++){done[r]=o[r];const t=[0,1,2].map(j=>mul(M3[3*r+j],v3[j]));C(`<div class="eq">${tb(rows3(M3).map((q,i)=>({c:q.c,h:i===r})))}<i>·</i>${tb(v3.map(z=>({c:[z]})))}<i>=</i>${tb(done.map((z,i)=>({c:[z],h:i===r})))}</div><div class="ex">${[0,1,2].map(j=>P(M3[3*r+j])+'·'+P(v3[j])).join(' + ')} = ${t.map(P).join(' + ')} = <b>${fs(o[r])}</b></div>`);if(!await sleep(1300,T))return}
+ const of=o.map(fl);await anim(1800,p=>show(zax(R),wire(CUBE,BL,3,.6),wire(CUBE.map((c,i)=>l3(c,img3[i],es(p))),RD,4),arr(...prj(vf),BL,'in'),arr(...prj(l3(vf,of,es(p))),RD,p>.98?'out':'')),T)});
+S('3×3: determinant = volume factor',async T=>{const m=(i,j)=>P(M3[3*i+j]),d=det3(M3),R=rng([...img3.map(prj),...CUBE.map(prj)]);setR(R);
+ const ex=`${m(0,0)}·(${m(1,1)}·${m(2,2)} − ${m(1,2)}·${m(2,1)}) − ${m(0,1)}·(${m(1,0)}·${m(2,2)} − ${m(1,2)}·${m(2,0)}) + ${m(0,2)}·(${m(1,0)}·${m(2,1)} − ${m(1,1)}·${m(2,0)})`,box=(t)=>`<div class="eq">${tb(rows3(M3))}</div><div class="ex" style="font-size:clamp(15px,1.5vw,24px)">det A = ${ex}${t?'<br><b>= '+fs(d)+'</b>':''}</div>`;
+ cap('A 3×3 determinant is the volume factor: the unit cube (volume 1) becomes a box of volume det A.');C(box(0));show(zax(R),wire(CUBE,BL,3,.6),wire(img3,RD,4));if(!await sleep(1500,T))return;C(box(1));show(zax(R),wire(CUBE,BL,3,.6),wire(img3,RD,4),bigtxt('volume × '+fs(d)))});
+S('3×3: eigenvalues and eigenvectors',async T=>{const EV=[[2,[1,0,0]],[3,[1,1,0]],[4,[1,2,2]]].map(([l,w])=>[F(l),w.map(n=>F(n))]),R=rng([...CUBE.map(prj),...EV.map(([l,w])=>prj(w.map(z=>fl(mul(z,l)))))]);setR(R);
+ const el=w=>{const a=prj(w.map(z=>-z*R*1.5)),b=prj(w.map(z=>z*R*1.5));return `<line class="el" x1="${X(a[0])}" y1="${Y(a[1])}" x2="${X(b[0])}" y2="${Y(b[1])}"/>`};
+ const L=[`det(A − λI) = (${fs(M3[0])} − λ)(${fs(M3[4])} − λ)(${fs(M3[8])} − λ) = 0 : triangular, so the eigenvalues are the diagonal entries`,...EV.map(([l,w])=>{const o=mv3(M3,w);return `λ = ${fs(l)}: v = ${vs3(w)} → A·v = ${vs3(o)} = ${fs(l)}·${vs3(w)}`})];cap('Eigenvalues 2, 3, 4: three directions that keep their line.');
+ for(let i=0;i<=L.length;i++){C(L.slice(0,i).map((x,k)=>`<div class="ln${k===i-1?' new':''}">${x}</div>`).join(''));show(zax(R),wire(CUBE,BL,2,.4),...EV.slice(0,Math.max(0,i-1)).map(([l,w])=>el(w.map(fl))+arr(...prj(w.map(z=>fl(mul(z,l)))),RD,'×'+fs(l),4)+arr(...prj(w.map(fl)),BL,'',6)));if(i<L.length&&!await sleep(1500,T))return}});
+const SEC=[['1 · A matrix moves a vector',0],['2 · Matrix as agent of transformation',4],['3 · The whole square',5],['4 · Determinant',8],['5 · Eigenvalues & eigenvectors',12],['6 · The inverse',15],['7 · The 3×3 case',16]];
+/* ---------- results panel ---------- */
+function resHTML(){const E=D.E,r=[[3,'A·v',vs(D.Av)],[6,'Corner images',D.cs.map(vs).join(' ')],[8,'det A',fs(D.det)],[9,'Area factor','× '+fs(D.det)+(D.det.n<0n?' (flip)':'')]];
+ if(E.k==='cx')r.push([13,'Eigenvalues',E.ls.join(', ')+' (no real eigenvector)']);else{const ds=dirs();if(!ds.length)r.push([13,'λ',E.ls[0]+' (every direction)']);ds.forEach((d,j)=>r.push([cur===12&&j<eigSeen?12:13,'λ'+(j+1)+', v'+(j+1),lamTxt(d.i)+' ,  '+(E.vs[d.i]?vs(E.vs[d.i]):vsf(d.w))]))}
+ if(!zero(D.det)){const k=dv(F(1),D.det);r.push([15,'det A⁻¹',fs(k)])}
+ return '<h3>Results so far</h3>'+r.filter(x=>x[0]<=cur).map(x=>`<div><span>${x[1]}</span>${x[2]}</div>`).join('')}
+/* ---------- engine ---------- */
+async function go(i){pg=false;$('#pg').hidden=true;cur=Math.max(0,Math.min(ST.length-1,i));const T=++tok;if(waiting)waiting();ui();
+ try{await ST[cur].f(T)}catch(e){console.error(e);cap('Something went wrong in this step — press Next or Back to continue.')}}
+function ui(){$('#ttl').textContent=pg?'Playground':ST[cur].t;$('#fill').style.width=pg?'100%':(cur+1)/ST.length*100+'%';$('#cnt').textContent=pg?'Playground':'Step '+(cur+1)+' / '+ST.length;
+ $('#bk').disabled=!pg&&cur===0;$('#nx').disabled=!pg&&cur===ST.length-1;$('#res').hidden=pg||cur>=16;if(!pg)$('#res').innerHTML=resHTML();
+ const sec=SEC.reduce((a,s,k)=>cur>=s[1]?k:a,0);[...$('#chips').children].forEach((b,k)=>b.classList.toggle('on',pg?k===SEC.length:k===sec));
+ [...$('#spd').children].forEach((b,k)=>b.classList.toggle('on',k===spi))}
+function setSpeed(k){spi=k;SP=[2,1,.5][k];ui()}
+$('#chips').innerHTML=SEC.map((s,k)=>`<button data-k="${k}">${s[0]}</button>`).join('')+'<button data-k="pg">8 · Playground</button>';
+$('#chips').onclick=e=>{const k=e.target.dataset.k;if(k==null)return;k==='pg'?enterPG():go(SEC[k][1])};
+$('#spd').onclick=e=>{if(e.target.dataset.i)setSpeed(+e.target.dataset.i)};
+$('#nx').onclick=()=>{if(waiting){waiting();return}go(pg?0:cur+1)};$('#bk').onclick=()=>go(pg?cur:cur-1);$('#rp').onclick=()=>go(cur);$('#own').onclick=enterPG;$('#show').onclick=()=>go(0);
+$('#th').onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'};
+addEventListener('keydown',e=>{if(/INPUT|TEXTAREA/.test(e.target.tagName)||e.ctrlKey||e.metaKey)return;const k=e.key;
+ if(k==='ArrowRight'||k===' '){e.preventDefault();if(!$('#nx').disabled||pg)$('#nx').click()}else if(k==='ArrowLeft'){if(!$('#bk').disabled)$('#bk').click()}else if(k==='r'||k==='R')$('#rp').click();else if(k==='s'||k==='S')setSpeed((spi+1)%3)});
+/* ---------- playground ---------- */
+const NM=['a','b','c','d','x','y'];
+$('#pgin').innerHTML=NM.map(k=>`<label>${k}<input type="text" id="i_${k}" inputmode="decimal" autocomplete="off"><input type="range" id="s_${k}" min="-9" max="9" step="0.5"></label>`).join('');
+const PRE=[['Rotation 90°',[0,-1,1,0]],['Reflection',[1,0,0,-1]],['Scaling',[2,0,0,3]],['Shear',[1,1,0,1]],['Singular',[1,2,2,4]],['Default A',[3,-2,-1,4],[1,1]]];
+$('#pgp').innerHTML=PRE.map((p,i)=>`<button data-p="${i}">${p[0]}</button>`).join('');
+$('#pgp').onclick=e=>{const p=PRE[e.target.dataset.p];if(!p)return;A=p[1].map(n=>F(n));if(p[2])v=p[2].map(n=>F(n));setBoxes();pgRead()};
+function setBoxes(){[...A,...v].forEach((x,i)=>{$('#i_'+NM[i]).value=sfs(x);$('#s_'+NM[i]).value=fl(x)})}
+function pgRead(){const vals=NM.map(k=>parse($('#i_'+k).value));if(vals.some(x=>!x)){$('#msg').textContent='Please type numbers like 3, −2.5 or 1/2 in every box. The picture keeps the last valid values.';return}
+ $('#msg').textContent='';A=vals.slice(0,4);v=vals.slice(4);NM.forEach((k,i)=>{$('#s_'+k).value=fl(vals[i])});rc();pgDraw()}
+$('#pgin').addEventListener('input',e=>{const t=e.target;if(t.type==='range')$('#i_'+t.id.slice(2)).value=t.value;pgRead()});
+function pgDraw(){const E=D.E,sq=SQ.map(f2),im=D.cs.map(f2),x=inv(),o=f2(D.Av),R=rng([im,[x,o],...E.vf.map(w=>w)]);setR(R);
+ show(poly(sq,'sq'),poly(im,'im'),E.vf.map(w=>elin(w,R)).join(''),arr(o[0],o[1],RD,'out'),arr(x[0],x[1],BL,'in'),`<circle cx="${X(x[0])}" cy="${Y(x[1])}" r="13" style="fill:${BL};stroke:var(--bg);stroke-width:3;cursor:grab"/>`);
+ const ds=dirs();$('#pgout').innerHTML=`<div class="ex" style="font-size:clamp(17px,1.7vw,26px)">A·v = ${vs(D.Av)}<br>Corners: ${D.cs.map(vs).join(' ')}<br>det A = ${fs(D.det)} → area × ${fs(D.det)}${D.det.n<0n?' (orientation flips)':''}<br>`+
+ (E.k==='cx'?'λ = '+E.ls.join(', '):ds.length?ds.map(d=>'λ = '+lamTxt(d.i)+', v '+(E.vs[d.i]?vs(E.vs[d.i]):vsf(d.w))).join('<br>'):'λ = '+E.ls[0])+`</div><p>${note()}</p>`}
+function enterPG(){tok++;if(waiting)waiting();pg=true;$('#pg').hidden=false;C('');cap('');setBoxes();rc();ui();pgDraw()}
+let drag=false;const dragTo=e=>{const r=$('#pl').getBoundingClientRect(),q=.25,wx=((e.clientX-r.left)/r.width*600-300)/V.sc,wy=-((e.clientY-r.top)/r.height*600-300)/V.sc;
+ $('#i_x').value=String(Math.round(wx/q)*q);$('#i_y').value=String(Math.round(wy/q)*q);pgRead()};
+$('#pl').addEventListener('pointerdown',e=>{if(!pg)return;drag=true;$('#pl').setPointerCapture(e.pointerId);dragTo(e)});$('#pl').addEventListener('pointermove',e=>{if(drag)dragTo(e)});$('#pl').addEventListener('pointerup',()=>{drag=false});
+rc();ui();go(0);
+</script></body></html>
