@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KTU JPEG Converter</title>
+<style>
+:root{--bg:#f3f5f8;--surface:#ffffff;--ink:#14213d;--muted:#5b6578;--line:#d3d9e3;--accent:#0b5fff;--accent-ink:#ffffff;--ok:#12794a;--warn:#a85a00;--bad:#b3261e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1420;--surface:#161e2e;--ink:#e8edf7;--muted:#9aa6bd;--line:#2a3550;--accent:#5b8cff;--accent-ink:#0b1020;--ok:#4cc38a;--warn:#f0a24a;--bad:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1420;--surface:#161e2e;--ink:#e8edf7;--muted:#9aa6bd;--line:#2a3550;--accent:#5b8cff;--accent-ink:#0b1020;--ok:#4cc38a;--warn:#f0a24a;--bad:#ff8a80;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif}
+main{max-width:860px;margin:0 auto;padding:28px 18px 56px}
+h1{font:700 clamp(1.7rem,5vw,2.3rem)/1.15 "Atkinson Hyperlegible","Segoe UI",sans-serif;margin:0 0 6px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 22px;max-width:60ch}
+.drop{display:block;border:2px dashed var(--line);background:var(--surface);border-radius:14px;padding:30px 18px;text-align:center;transition:border-color .15s,background .15s}
+.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.drop strong{display:block;font-size:1.1rem;margin-bottom:4px}
+.drop span{color:var(--muted);font-size:.95rem}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+button,.btn{font:inherit;font-weight:600;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:10px 16px;cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible,label:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.opts{display:flex;flex-wrap:wrap;gap:16px 24px;margin-top:18px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;align-items:center}
+.opts label{display:flex;gap:8px;align-items:center}
+input[type=number]{width:82px;font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:18px;display:none}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .1s}
+.summary{margin:16px 0 0;color:var(--muted)}
+.tw{overflow-x:auto;margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.95rem}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:600;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td.n{max-width:240px;overflow:hidden;text-overflow:ellipsis}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+td button{padding:5px 10px;font-size:.88rem}
+.note{color:var(--muted);font-size:.9rem;margin-top:22px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<main>
+  <h1>Convert JPG files to JPEG for KTU upload</h1>
+  <p class="sub">Pick a folder of images. Each one is saved with a .jpeg extension at the same pixel size, compressed to stay under your size limit. Everything runs in your browser, nothing is uploaded.</p>
+
+  <label class="drop" id="drop">
+    <strong>Drop a folder or images here</strong>
+    <span>or use the buttons below</span>
+  </label>
+  <div class="row">
+    <button class="primary" id="pickFolder">Choose folder</button>
+    <button id="pickFiles">Choose files</button>
+    <input type="file" id="folderIn" webkitdirectory directory multiple class="hide">
+    <input type="file" id="filesIn" accept="image/*,.jpg,.jpeg,.png" multiple class="hide">
+  </div>
+
+  <div class="opts">
+    <label>Maximum size <input type="number" id="limit" value="30" min="5" max="500"> KB</label>
+    <label><input type="checkbox" id="shrink"> Reduce pixel size only if the limit can’t be met</label>
+  </div>
+
+  <div class="row">
+    <button class="primary" id="go" disabled>Convert</button>
+    <button id="zip" disabled>Download all as ZIP</button>
+    <button id="clear" disabled>Clear</button>
+  </div>
+  <div class="bar" id="bar"><i id="barFill"></i></div>
+  <p class="summary" id="summary"></p>
+
+  <div class="tw hide" id="tw">
+    <table>
+      <thead><tr><th>File</th><th>Original</th><th>Result</th><th>Pixels</th><th>Status</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <p class="note" id="note"></p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(function(){
+  var items=[], busy=false;
+  var $=function(i){return document.getElementById(i)};
+  var folderIn=$("folderIn"), filesIn=$("filesIn"), drop=$("drop");
+  var downloads=null;
+  if(window.claude&&claude.use){claude.use("downloads").then(function(d){downloads=d;refresh()}).catch(function(){})}
+
+  $("pickFolder").onclick=function(){folderIn.click()};
+  $("pickFiles").onclick=function(){filesIn.click()};
+  drop.addEventListener("click",function(e){e.preventDefault();folderIn.click()});
+  folderIn.onchange=function(){add(folderIn.files);folderIn.value=""};
+  filesIn.onchange=function(){add(filesIn.files);filesIn.value=""};
+  ["dragover","dragenter"].forEach(function(t){drop.addEventListener(t,function(e){e.preventDefault();drop.classList.add("over")})});
+  ["dragleave","drop"].forEach(function(t){drop.addEventListener(t,function(){drop.classList.remove("over")})});
+  drop.addEventListener("drop",async function(e){
+    e.preventDefault();
+    var list=[];
+    var its=e.dataTransfer.items;
+    if(its&&its.length&&its[0].webkitGetAsEntry){
+      var ents=[];for(var i=0;i<its.length;i++){var en=its[i].webkitGetAsEntry();if(en)ents.push(en)}
+      for(var j=0;j<ents.length;j++)await walk(ents[j],list);
+    }else{list=Array.from(e.dataTransfer.files)}
+    add(list);
+  });
+  async function walk(en,out){
+    if(en.isFile){await new Promise(function(r){en.file(function(f){out.push(f);r()},r)})}
+    else if(en.isDirectory){
+      var rd=en.createReader(),batch;
+      do{batch=await new Promise(function(r){rd.readEntries(r,function(){r([])})});
+        for(var k=0;k<batch.length;k++)await walk(batch[k],out)}while(batch.length);
+    }
+  }
+
+  function add(fl){
+    var n=0;
+    Array.from(fl).forEach(function(f){
+      if(!/^image\//.test(f.type)&&!/\.(jpe?g|png)$/i.test(f.name))return;
+      items.push({file:f,out:null,status:"Waiting",cls:""});n++;
+    });
+    if(!n&&fl.length)$("note").textContent="No image files found in that selection.";
+    else $("note").textContent="";
+    render();
+  }
+
+  function kb(b){return (b/1024).toFixed(1)+" KB"}
+  function toBlob(c,q){return new Promise(function(r){c.toBlob(r,"image/jpeg",q)})}
+
+  async function convert(it,limit,shrink){
+    var f=it.file;
+    var bmp=await createImageBitmap(f);
+    it.w0=bmp.width;it.h0=bmp.height;
+    var isJpg=/jpe?g/i.test(f.type)||/\.jpe?g$/i.test(f.name);
+    if(isJpg&&f.size<=limit){
+      it.out=f.slice(0,f.size,"image/jpeg");it.w=bmp.width;it.h=bmp.height;
+      it.status="Under limit, renamed only";it.cls="ok";bmp.close&&bmp.close();return;
+    }
+    var scale=1;
+    while(true){
+      var w=Math.max(1,Math.round(bmp.width*scale)),h=Math.max(1,Math.round(bmp.height*scale));
+      var c=document.createElement("canvas");c.width=w;c.height=h;
+      var g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,w,h);
+      g.imageSmoothingQuality="high";g.drawImage(bmp,0,0,w,h);
+      var lo=0.03,hi=0.95,best=null;
+      var top=await toBlob(c,hi);
+      if(top.size<=limit){best=top}
+      else{
+        for(var i=0;i<9;i++){
+          var mid=(lo+hi)/2,b=await toBlob(c,mid);
+          if(b.size<=limit){best=b;lo=mid}else{hi=mid}
+        }
+      }
+      if(best){
+        it.out=best;it.w=w;it.h=h;
+        if(scale<1){it.status="Resized to "+Math.round(scale*100)+"%";it.cls="warn"}
+        else{it.status="Converted";it.cls="ok"}
+        bmp.close&&bmp.close();return;
+      }
+      if(!shrink||scale<0.2){
+        it.out=null;it.status=shrink?"Could not reach limit":"Too detailed for limit";it.cls="bad";
+        bmp.close&&bmp.close();return;
+      }
+      scale*=0.9;
+    }
+  }
+
+  $("go").onclick=async function(){
+    if(busy)return;busy=true;
+    var limit=Math.max(1,parseFloat($("limit").value)||30)*1024-64;
+    var shrink=$("shrink").checked;
+    var todo=items.filter(function(i){return !i.out&&i.cls!=="bad"||i.cls==="bad"});
+    $("bar").style.display="block";
+    refresh();
+    for(var i=0;i<items.length;i++){
+      var it=items[i];
+      it.status="Working…";it.cls="";render();
+      try{await convert(it,limit,shrink)}catch(e){it.out=null;it.status="Could not read image";it.cls="bad"}
+      $("barFill").style.width=Math.round((i+1)/items.length*100)+"%";
+      render();
+    }
+    busy=false;refresh();
+  };
+
+  function outName(i){
+    var base=items[i].file.name.replace(/\.[^.]+$/,"");
+    var name=base+".jpeg",c=1;
+    for(var k=0;k<i;k++){if(items[k].oname===name){c++;name=base+"_"+c+".jpeg"}}
+    return name;
+  }
+  function names(){items.forEach(function(it,i){it.oname=outName(i)})}
+
+  async function save(name,data){
+    if(!downloads){$("note").textContent="Saving isn’t available in this view. Open the artifact in claude.ai to download.";return}
+    try{await downloads.save({filename:name,data:data})}
+    catch(e){if(e&&e.code!=="declined")$("note").textContent="Couldn’t save: "+(e.message||e.code)}
+  }
+
+  $("zip").onclick=async function(){
+    names();
+    var ok=items.filter(function(i){return i.out});
+    if(!ok.length)return;
+    var z=new JSZip();
+    ok.forEach(function(it){z.file(it.oname,it.out)});
+    var blob=await z.generateAsync({type:"blob",compression:"STORE"});
+    save("converted-jpeg-images.zip",blob);
+  };
+  $("clear").onclick=function(){if(busy)return;items=[];$("bar").style.display="none";$("barFill").style.width="0";render()};
+
+  function refresh(){
+    var has=items.length>0,done=items.some(function(i){return i.out});
+    $("go").disabled=!has||busy;
+    $("zip").disabled=!done||busy||!downloads;
+    $("clear").disabled=!has||busy;
+    var tot=items.length,ok=items.filter(function(i){return i.out}).length;
+    var bad=items.filter(function(i){return i.cls==="bad"}).length;
+    $("summary").textContent=tot?(ok?ok+" of "+tot+" ready"+(bad?", "+bad+" need attention":""):tot+" file"+(tot>1?"s":"")+" added"):"";
+  }
+
+  function render(){
+    names();
+    var tb=$("rows");tb.innerHTML="";
+    items.forEach(function(it,i){
+      var tr=document.createElement("tr");
+      function td(t,cls){var d=document.createElement("td");d.textContent=t;if(cls)d.className=cls;tr.appendChild(d);return d}
+      td(it.file.name,"n");
+      td(kb(it.file.size));
+      td(it.out?kb(it.out.size):"–");
+      td(it.w?(it.w===it.w0?it.w+"×"+it.h:it.w0+"×"+it.h0+" → "+it.w+"×"+it.h):"–");
+      td(it.status,it.cls);
+      var d=document.createElement("td");
+      if(it.out&&downloads){var b=document.createElement("button");b.textContent="Save";b.onclick=function(){save(it.oname,it.out)};d.appendChild(b)}
+      tr.appendChild(d);tb.appendChild(tr);
+    });
+    $("tw").classList.toggle("hide",!items.length);
+    refresh();
+  }
+  render();
+})();
+</script>
+</body>
+</html>
