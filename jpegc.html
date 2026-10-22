@@ -193,7 +193,11 @@ td button{padding:5px 10px;font-size:.88rem}
   function names(){items.forEach(function(it,i){it.oname=outName(i)})}
 
   async function save(name,data){
-    if(!downloads){$("note").textContent="Saving isn’t available in this view. Open the artifact in claude.ai to download.";return}
+    if(!downloads){
+      try{var a=document.createElement("a");a.href=URL.createObjectURL(data instanceof Blob?data:new Blob([data]));a.download=name;document.body.appendChild(a);a.click();a.remove();
+        $("note").textContent="If nothing downloaded, open this page in claude.ai (not an embedded preview) and try again."}
+      catch(e){$("note").textContent="Saving isn’t available in this view. Open the artifact in claude.ai to download."}
+      return}
     try{await downloads.save({filename:name,data:data})}
     catch(e){if(e&&e.code!=="declined")$("note").textContent="Couldn’t save: "+(e.message||e.code)}
   }
@@ -212,7 +216,7 @@ td button{padding:5px 10px;font-size:.88rem}
   function refresh(){
     var has=items.length>0,done=items.some(function(i){return i.out});
     $("go").disabled=!has||busy;
-    $("zip").disabled=!done||busy||!downloads;
+    $("zip").disabled=!done||busy;
     $("clear").disabled=!has||busy;
     var tot=items.length,ok=items.filter(function(i){return i.out}).length;
     var bad=items.filter(function(i){return i.cls==="bad"}).length;
@@ -231,7 +235,7 @@ td button{padding:5px 10px;font-size:.88rem}
       td(it.w?(it.w===it.w0?it.w+"×"+it.h:it.w0+"×"+it.h0+" → "+it.w+"×"+it.h):"–");
       td(it.status,it.cls);
       var d=document.createElement("td");
-      if(it.out&&downloads){var b=document.createElement("button");b.textContent="Save";b.onclick=function(){save(it.oname,it.out)};d.appendChild(b)}
+      if(it.out){var b=document.createElement("button");b.textContent="Save";b.onclick=function(){save(it.oname,it.out)};d.appendChild(b)}
       tr.appendChild(d);tb.appendChild(tr);
     });
     $("tw").classList.toggle("hide",!items.length);
